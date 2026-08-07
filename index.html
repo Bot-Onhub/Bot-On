@@ -70,7 +70,7 @@
                 
                 <!-- Menú Desktop -->
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="#beneficios" class="text-gray-600 hover:text-brand-600 font-medium transition-colors">Beneficios</a>
+                    <a href="#" class="text-gray-600 hover:text-brand-600 font-medium transition-colors"></a>
                     <a href="#soluciones" class="text-gray-600 hover:text-brand-600 font-medium transition-colors">Para Quién</a>
                     <a href="#logistica" class="text-gray-600 hover:text-brand-600 font-medium transition-colors">Logística</a>
                     <a href="#contacto" class="bg-gray-900 hover:bg-brand-600 text-white px-6 py-2 rounded-full font-semibold transition-all shadow-md transform hover:-translate-y-1">Agendar Demo</a>
@@ -113,7 +113,7 @@
                         <a href="#contacto" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-full font-bold text-lg transition-all shadow-lg text-center flex items-center justify-center" style="gap: 8px;">
                             <i class="fa-brands fa-whatsapp text-xl"></i> Cotizar para mi negocio
                         </a>
-                        <a href="#beneficios" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-8 py-4 rounded-full font-bold text-lg transition-all text-center flex items-center justify-center" style="gap: 8px;">
+                        <a href="#" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-8 py-4 rounded-full font-bold text-lg transition-all text-center flex items-center justify-center" style="gap: 8px;">
                             <i class="fa-solid fa-play text-brand-600"></i> Ver cómo funciona
                         </a>
                     </div>
@@ -157,7 +157,7 @@
         </div>
     </section>
 
-    <!-- BENEFICIOS CON VIDEOS IA -->
+   <!-- BENEFICIOS CON 5 VIDEOS IA -->
     <section id="beneficios" class="py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-3xl mx-auto mb-16">
@@ -166,13 +166,14 @@
                 <p class="text-lg text-gray-600">Entendemos lenguaje natural, negociamos, cerramos ventas y organizamos tus despachos sin intervención humana.</p>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <!-- Fila superior: 3 Tarjetas -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
                 <!-- Tarjeta 1 -->
-                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100 hover:border-brand-200 transition-all group shadow-sm hover:shadow-md flex flex-col">
-                    <div class="w-full h-48 mb-6 rounded-xl overflow-hidden bg-gray-200 relative">
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100 hover:border-brand-200 transition-all shadow-sm hover:shadow-md flex flex-col">
+                    <div class="w-full h-48 mb-6 rounded-xl overflow-hidden bg-black relative">
                         <video autoplay loop muted playsinline class="w-full h-full object-cover">
                             <!-- CAMBIA EL NOMBRE DEL ARCHIVO AQUÍ -->
-                            <source src="demoboton4.mp4" type="video/mp4">
+                            <source src="caos-orden.mp4" type="video/mp4">
                         </video>
                     </div>
                     <h4 class="text-xl font-bold text-gray-900 mb-3">Del Caos al Orden</h4>
@@ -180,11 +181,11 @@
                 </div>
 
                 <!-- Tarjeta 2 -->
-                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100 hover:border-brand-200 transition-all group shadow-sm hover:shadow-md flex flex-col">
-                    <div class="w-full h-48 mb-6 rounded-xl overflow-hidden bg-gray-200 relative">
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100 hover:border-brand-200 transition-all shadow-sm hover:shadow-md flex flex-col">
+                    <div class="w-full h-48 mb-6 rounded-xl overflow-hidden bg-black relative">
                         <video autoplay loop muted playsinline class="w-full h-full object-cover">
                             <!-- CAMBIA EL NOMBRE DEL ARCHIVO AQUÍ -->
-                            <source src="demoboton5.mp4" type="video/mp4">
+                            <source src="logistica-inmediata.mp4" type="video/mp4">
                         </video>
                     </div>
                     <h4 class="text-xl font-bold text-gray-900 mb-3">Logística Integrada</h4>
@@ -192,15 +193,42 @@
                 </div>
 
                 <!-- Tarjeta 3 -->
-                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100 hover:border-brand-200 transition-all group shadow-sm hover:shadow-md flex flex-col">
-                    <div class="w-full h-48 mb-6 rounded-xl overflow-hidden bg-gray-200 relative">
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100 hover:border-brand-200 transition-all shadow-sm hover:shadow-md flex flex-col">
+                    <div class="w-full h-48 mb-6 rounded-xl overflow-hidden bg-black relative">
                         <video autoplay loop muted playsinline class="w-full h-full object-cover">
                             <!-- CAMBIA EL NOMBRE DEL ARCHIVO AQUÍ -->
-                            <source src="demoboton2.mp4" type="video/mp4">
+                            <source src="facturando-247.mp4" type="video/mp4">
                         </video>
                     </div>
                     <h4 class="text-xl font-bold text-gray-900 mb-3">Facturación 24/7</h4>
                     <p class="text-gray-600 leading-relaxed text-sm">No pierdas ventas de madrugada. Conectamos tu negocio a la API Oficial de Meta de forma 100% segura para despachar recibos mientras duermes.</p>
+                </div>
+            </div>
+
+            <!-- Fila inferior: 2 Tarjetas centradas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto">
+                <!-- Tarjeta 4 -->
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100 hover:border-brand-200 transition-all shadow-sm hover:shadow-md flex flex-col">
+                    <div class="w-full h-48 mb-6 rounded-xl overflow-hidden bg-black relative">
+                        <video autoplay loop muted playsinline class="w-full h-full object-cover">
+                            <!-- CAMBIA EL NOMBRE DEL ARCHIVO AQUÍ -->
+                            <source src="control-total.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">Control Total del Ecosistema</h4>
+                    <p class="text-gray-600 leading-relaxed text-sm">No solo adquieres un bot, obtienes un dashboard web avanzado para monitorear tendencias, métricas de retención y volumen de ventas en tiempo real.</p>
+                </div>
+
+                <!-- Tarjeta 5 -->
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100 hover:border-brand-200 transition-all shadow-sm hover:shadow-md flex flex-col">
+                    <div class="w-full h-48 mb-6 rounded-xl overflow-hidden bg-black relative">
+                        <video autoplay loop muted playsinline class="w-full h-full object-cover">
+                            <!-- CAMBIA EL NOMBRE DEL ARCHIVO AQUÍ -->
+                            <source src="cerebro-operacion.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">El Cerebro de la Operación</h4>
+                    <p class="text-gray-600 leading-relaxed text-sm">Procesamiento cognitivo avanzado. Transformamos intenciones ambiguas en lenguaje natural directamente en formatos de datos estructurados para tu negocio.</p>
                 </div>
             </div>
         </div>
