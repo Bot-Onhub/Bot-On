@@ -1,1 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interventoría AaaS - Versión Segura (v2)</title>
+    <!-- Leaflet CSS para el Mapa -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Html5-qrcode para lectura de códigos QR -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Pantalla de Login */
+        #login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .login-card h1 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            text-align: center;
+            color: #0f172a;
+        }
+
+        .login-card p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Estructura Principal */
+        #app-screen {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: #0f172a;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h2 {
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        #status-indicator {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            background: #64748b;
+            color: white;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        main {
+            flex: 1;
+            max-width: 700px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 1.25rem;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 1rem;
+        }
+
+        .card h3 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #334155;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 0.85rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #334155;
+            text-transform: uppercase;
+            margin-bottom: 0.3rem;
+        }
+
+        input[type="email"],
+        input[type="pass"],
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+        }
+
+        .row-flex {
+            display: flex;
+            gap: 0.5srem;
+            gap: 8px;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            padding: 0.65rem 1rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-dark {
+            background: #1e293b;
+        }
+        .btn-dark:hover {
+            background: #0f172a;
+        }
+
+        .btn-success {
+            background: #059669;
+        }
+        .btn-success:hover {
+            background: #047857;
+        }
+
+        .btn-indigo {
+            background: #4f46e5;
+        }
+        .btn-indigo:hover {
+            background: #4338ca;
+        }
+
+        .full-width {
+            width: 100%;
+        }
+
+        #reader {
+            margin-top: 0.5rem;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .gps-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #gps-data {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        input[type="file"] {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        #map {
+            height: 280px;
+            width: 100%;
+            border-radius: 6px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========================================== -->
+    <!-- PANTALLA DE LOGIN (Supabase Auth)          -->
+    <!-- ========================================== -->
+    <div id="login-screen">
+        <div class="login-card">
+            <h1>INTERVENTORÍA AAAs</h1>
+            <p>Acceso Seguro Verificado por Base de Datos</p>
+            
+            <div class="form-group">
+                <label>Correo Electrónico (Supabase)</label>
+                <input type="email" id="user" placeholder="usuario@municipio.gov.co">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="pass" id="pass" placeholder="••••••••">
+            </div>
+            <button onclick="login()" class="full-width">Ingresar al Sistema</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- PANTALLA PRINCIPAL DE LA APLICACIÓN       -->
+    <!-- ========================================== -->
+    <div id="app-screen" class="hidden">
+        <!-- Barra Superior -->
+        <header>
+            <div>
+                <h2>Módulo de Inspección en Campo</h2>
+                <span id="status-indicator">Verificando red...</span>
+            </div>
+            <button id="btn-sync" onclick="syncData()" class="hidden btn-success" style="font-size: 0.75rem; padding: 0.4rem 0.8rem;">
+                Sincronizar Pendientes (<span id="queue-count">0</span>)
+            </button>
+        </header>
+
+        <!-- Contenido -->
+        <main>
+            <!-- Formulario de Registro -->
+            <section class="card">
+                <h3>Nuevo Registro de Activo</h3>
+                
+                <!-- ID Poste y QR -->
+                <div class="form-group">
+                    <label>ID del Poste / Activo</label>
+                    <div class="row-flex">
+                        <input type="text" id="id_poste" placeholder="Ej: TRN-001" style="text-transform: uppercase;">
+                        <button onclick="startQrScanner()" class="btn-dark">Escanear QR</button>
+                    </div>
+                    <div id="reader" class="hidden"></div>
+                </div>
+
+                <!-- Tipo de Actividad -->
+                <div class="form-group">
+                    <label>Tipo de Actividad</label>
+                    <select id="tipo_actividad">
+                        <option value="">Seleccione una actividad...</option>
+                        <option value="MANTENIMIENTO_PREVENTIVO">Mantenimiento Preventivo</option>
+                        <option value="MANTENIMIENTO_CORRECTIVO">Mantenimiento Correctivo</option>
+                        <option value="INSPECCION_VISUAL">Inspección Visual</option>
+                        <option value="REPOSICION_EQUIPO">Reposición de Equipo</option>
+                    </select>
+                </div>
+
+                <!-- Estado Operativo -->
+                <div class="form-group">
+                    <label>Estado Operativo</label>
+                    <select id="estado_incidencia">
+                        <option value="OPERATIVA">Operativa / Sin Novedad</option>
+                        <option value="DANADA">Dañada / Con Falla</option>
+                        <option value="EN_REPARACION">En Reparación</option>
+                        <option value="FUERA_DE_SERVICIO">Fuera de Servicio</option>
+                    </select>
+                </div>
+
+                <!-- Sector o Barrio -->
+                <div class="form-group">
+                    <label>Sector / Barrio / Vereda</label>
+                    <input type="text" id="sector_barrio" placeholder="Ej: Zona Centro, Vereda La Clara">
+                </div>
+
+                <!-- Descripción del Trabajo -->
+                <div class="form-group">
+                    <label>Descripción del Trabajo / Observaciones</label>
+                    <textarea id="descripcion_trabajo" rows="2" placeholder="Detalle las condiciones encontradas..."></textarea>
+                </div>
+
+                <!-- Captura GPS -->
+                <div class="form-group">
+                    <label>Geolocalización GPS</label>
+                    <div class="gps-container">
+                        <button onclick="captureGPS()" class="btn-indigo">Capturar Coordenadas</button>
+                        <span id="gps-data">GPS no capturado</span>
+                    </div>
+                </div>
+
+                <!-- Fotografía de Evidencia -->
+                <div class="form-group">
+                    <label>Evidencia Fotográfica (Obligatoria)</label>
+                    <input type="file" id="cameraInput" accept="image/*" capture="environment">
+                </div>
+
+                <!-- Botón Guardar -->
+                <button onclick="saveRecord()" class="full-width" style="margin-top: 0.5rem; padding: 0.8rem;">
+                    Guardar Inspección Localmente
+                </button>
+            </section>
+
+            <!-- Mapa Interactivo Leaflet -->
+            <section class="card">
+                <h3>Ubicación de Registros (Mapa Local)</h3>
+                <div id="map"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Tu archivo JavaScript con toda la lógica segura v2 -->
+    <script src="app_v2.js"></script>
+</body>
+</html>
