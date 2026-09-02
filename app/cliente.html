@@ -1,1 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Interventoría y Auditoría - Alumbrado Público</title>
+    
+    <!-- LEAFLET CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+        
+        .hidden { display: none !important; }
+        .flex-center { display: flex; align-items: center; justify-content: center; }
+        .min-screen { min-height: 100vh; width: 100vw; }
+        .card { background: #ffffff; padding: 2rem; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 0.25rem; }
+        .form-input { width: 100%; padding: 0.65rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; outline: none; font-size: 0.9rem; }
+        .form-input:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
+        
+        .btn { width: 100%; padding: 0.75rem; border: none; border-radius: 0.5rem; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: background 0.2s; }
+        .btn-blue { background-color: #2563eb; color: #ffffff; }
+        .btn-blue:hover { background-color: #1d4ed8; }
+        .btn-red { background-color: #dc2626; color: #ffffff; padding: 0.4rem 0.8rem; font-size: 0.75rem; border-radius: 0.375rem; }
+        .btn-red:hover { background-color: #b91c1c; }
+        .btn-gray { background-color: #e2e8f0; color: #334155; padding: 0.5rem 1rem; font-size: 0.75rem; border-radius: 0.375rem; font-weight: bold; cursor: pointer; border: none; }
+        .btn-gray:hover { background-color: #cbd5e1; }
+        .btn-emerald { background-color: #059669; color: #ffffff; padding: 0.5rem 1rem; font-size: 0.75rem; border-radius: 0.375rem; font-weight: bold; cursor: pointer; border: none; }
+        .btn-emerald:hover { background-color: #047857; }
+        .btn-indigo { background-color: #4f46e5; color: #ffffff; padding: 0.5rem 1rem; font-size: 0.75rem; border-radius: 0.375rem; font-weight: bold; cursor: pointer; border: none; }
+        .btn-indigo:hover { background-color: #4338ca; }
+        .btn-action { background-color: #0284c7; color: #ffffff; padding: 0.3rem 0.6rem; font-size: 0.7rem; border-radius: 0.25rem; font-weight: bold; cursor: pointer; border: none; }
+        .btn-action:hover { background-color: #0369a1; }
+
+        header { background-color: #0f172a; color: #ffffff; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        
+        main { flex-grow: 1; max-width: 1200px; width: 100%; margin: 0 auto; padding: 2rem 1rem; }
+        
+        /* Dashboard métricas RETILAP */
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .metric-card { background: #ffffff; padding: 1rem 1.25rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid #2563eb; }
+        .metric-card.emerald { border-left-color: #059669; }
+        .metric-card.indigo { border-left-color: #4f46e5; }
+        .metric-card.amber { border-left-color: #d97706; }
+        .metric-title { font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 700; }
+        .metric-value { font-size: 1.5rem; font-weight: bold; color: #0f172a; margin-top: 0.25rem; }
+
+        .controls-card { background: #ffffff; padding: 1.25rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-top: 1rem; align-items: end; }
+
+        .map-card { background: #ffffff; padding: 1.25rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; position: relative; z-index: 1; }
+        #map { width: 100%; height: 380px; border-radius: 0.375rem; position: relative; z-index: 1; }
+
+        /* Panel colapsable de Cuadrillas */
+        .collapsible-card { background: #ffffff; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; overflow: hidden; }
+        .collapsible-header { padding: 1rem 1.25rem; background: #f8fafc; font-weight: bold; font-size: 0.85rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; }
+        .collapsible-body { padding: 1rem 1.25rem; display: none; }
+        .collapsible-body.open { display: block; }
+
+        .table-container { background: #ffffff; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow-x: auto; position: relative; z-index: 2; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #475569; font-size: 0.75rem; text-transform: uppercase; padding: 0.75rem; font-weight: 700; }
+        td { padding: 0.75rem; border-bottom: 1px solid #f1f5f9; font-size: 0.875rem; color: #334155; }
+        tr:hover { background-color: #f8fafc; }
+
+        .badge { background-color: #dbeafe; color: #1e40af; font-size: 0.7rem; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-weight: 650; }
+        .badge-falla { background-color: #fee2e2; color: #991b1b; }
+        .badge-ok { background-color: #d1fae5; color: #065f46; }
+        .badge-atendida { background-color: #e0e7ff; color: #3730a3; }
+
+        .thumbnail { width: 40px; height: 40px; object-fit: cover; border-radius: 0.25rem; border: 1px solid #cbd5e1; cursor: pointer; }
+        
+        .modal { position: fixed; inset: 0; background-color: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
+        .modal-content { max-width: 90vw; max-height: 90vh; text-align: center; }
+        .modal-img { max-width: 100%; max-height: 80vh; border-radius: 0.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); object-fit: contain; }
+
+        @media print {
+            body { background-color: #ffffff; color: #000000; }
+            header, .controls-card, .map-card, .collapsible-card, .btn, #login-cliente-screen, .no-print, .btn-action { display: none !important; }
+            .metrics-grid { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; margin-bottom: 15px !important; }
+            .metric-card { border: 1px solid #000 !important; box-shadow: none !important; padding: 8px !important; }
+            .table-container { box-shadow: none; border: 1px solid #ccc; overflow: visible; }
+            table { width: 100%; font-size: 8.5pt; border-collapse: collapse; page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            th, td { padding: 5px; border: 1px solid #000; vertical-align: middle; }
+            .print-header { display: block !important; margin-bottom: 15px; text-align: center; }
+            .thumbnail { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #999; }
+        }
+        .print-header { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-cliente-screen" class="flex-center min-screen">
+        <div class="card">
+            <h2 style="font-size: 1.35rem; font-weight: bold; margin-bottom: 0.5rem; text-align: center; color: #0f172a;">Consola de Interventoría</h2>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem; text-align: center;">Control Técnico y Auditoría RETILAP</p>
+            
+            <div>
+                <div class="form-group">
+                    <label class="form-label">Correo o Usuario</label>
+                    <input type="email" id="cliente_user" class="form-input" placeholder="Ingresa tu usuario" autocapitalize="none" autocorrect="off" spellcheck="false">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" id="cliente_pass" class="form-input" placeholder="••••••••">
+                </div>
+                <button onclick="loginCliente()" class="btn btn-blue">
+                    Ingresar al Panel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA PRINCIPAL DE LA APLICACIÓN -->
+    <div id="app-cliente-screen" class="hidden" style="display: none; flex-direction: column; min-height: 100vh;">
+        <header>
+            <div class="header-container">
+                <div>
+                    <h1 style="font-size: 1.25rem; font-weight: bold;">Consola de Interventoría & Auditoría</h1>
+                    <p style="font-size: 0.75rem; color: #94a3b8;">Verificación de campo e inventarios de alumbrado público</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span id="welcome-user" style="font-size: 0.85rem; color: #cbd5e1;"></span>
+                    <button onclick="logoutCliente()" class="btn btn-red">
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- ENCABEZADO PARA PDF OFICIAL -->
+            <div class="print-header">
+                <h2 style="font-size: 16pt; font-weight: bold;">REPORTE OFICIAL DE INTERVENTORÍA Y CONTROL TÉCNICO</h2>
+                <p style="font-size: 9pt; color: #555;">Sistema de Gestión e Inspección de Alumbrado Público – Cumplimiento Normativo</p>
+                <p style="font-size: 8pt; color: #777; margin-top: 4px;" id="print-fecha-generacion"></p>
+                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #000;">
+            </div>
+
+            <!-- DASHBOARD GERENCIAL / INDICADORES RETILAP -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title">Inventario Verificado</div>
+                    <div class="metric-value" id="stat-total">0</div>
+                </div>
+                <div class="metric-card emerald">
+                    <div class="metric-title">Evidencia Fotográfica</div>
+                    <div class="metric-value" id="stat-con-foto">0%</div>
+                </div>
+                <div class="metric-card amber">
+                    <div class="metric-title">Incidencias Pendientes</div>
+                    <div class="metric-value" id="stat-pendientes">0</div>
+                </div>
+                <div class="metric-card indigo">
+                    <div class="metric-title">Inspecciones (30 días)</div>
+                    <div class="metric-value" id="stat-recientes">0</div>
+                </div>
+            </div>
+
+            <div class="map-card">
+                <h3 style="font-size: 0.9rem; font-weight: bold; color: #334155; margin-bottom: 0.75rem;">Georreferenciación y Cobertura de Activos</h3>
+                <div id="map"></div>
+            </div>
+
+            <!-- PANEL COLAPSABLE: ANALÍTICA DE CUADRILLAS -->
+            <div class="collapsible-card">
+                <div class="collapsible-header" onclick="toggleCuadrillasPanel()">
+                    <span>📊 Analítica Operativa y Desempeño de Cuadrillas</span>
+                    <span id="toggle-icon">▼ Desplegar</span>
+                </div>
+                <div class="collapsible-body" id="cuadrillas-body">
+                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.75rem;">Consolidado de registros aportados por cada técnico en campo:</p>
+                    <div id="lista-cuadrillas-rendimiento" style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div style="font-weight: 500; font-size: 0.9rem;">
+                        Registros filtrados: <span id="total-registros" style="font-weight: bold; color: #2563eb;">0</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button onclick="cargarRegistrosCliente()" class="btn-gray">Actualizar Datos</button>
+                        <button onclick="exportarCSV()" class="btn-emerald">Exportar CSV</button>
+                        <button onclick="exportarPDF()" class="btn-indigo">Descargar Reporte PDF</button>
+                    </div>
+                </div>
+
+                <div class="filters-grid">
+                    <div>
+                        <label class="form-label">Buscar (Poste, Sector, Técnico)</label>
+                        <input type="text" id="filtro-texto" class="form-input" placeholder="Ej: POSTE 12, Centro..." oninput="aplicarFiltros()">
+                    </div>
+                    <div>
+                        <label class="form-label">Filtrar por Actividad</label>
+                        <select id="filtro-actividad" class="form-input" onchange="aplicarFiltros()">
+                            <option value="">Todas las actividades</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Estado / Incidencia</label>
+                        <select id="filtro-estado" class="form-input" onchange="aplicarFiltros()">
+                            <option value="">Todos los estados</option>
+                            <option value="PENDIENTE">Incidencias Pendientes</option>
+                            <option value="OPERATIVA">Operativas / Normales</option>
+                            <option value="ATENDIDA">Atendidas / Corregidas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button onclick="limpiarFiltros()" class="btn-gray" style="width: 100%;">Limpiar Filtros</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Poste</th>
+                            <th>Actividad / Hallazgo</th>
+                            <th>Estado Incidencia</th>
+                            <th>Sector / Barrio</th>
+                            <th>Descripción</th>
+                            <th>Técnico</th>
+                            <th>Coordenadas GPS</th>
+                            <th>Fecha</th>
+                            <th style="text-align: center;">Evidencia</th>
+                            <th style="text-align: center;" class="no-print">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-registros">
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL FOTO -->
+    <div id="modal-foto" class="hidden modal" onclick="cerrarModalFoto()">
+        <div class="modal-content">
+            <img id="img-modal" src="" class="modal-img">
+            <p style="color: #ffffff; font-size: 0.75rem; margin-top: 0.5rem;">Haz clic en cualquier parte para cerrar</p>
+        </div>
+    </div>
+
+    <!-- LEAFLET JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- LEAFLET JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        const SUPABASE_URL = "https://onxhuhjimbucnomwwcsn.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ueGh1aGppbWJ1Y25vbXd3Y3NuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MjYyMDksImV4cCI6MjEwMzUwMjIwOX0.mNYVLb6FZenWcJIy_k29lDWzFhB88SrI8v6tHPkrWsg";
+        const SUPABASE_TABLE = "registros_interventoria";
+        let mapInstance = null;
+        let markersLayer = null;
+        let datosCache = [];
+        let datosFiltrados = [];
+
+        function initMap(registros = []) {
+            if (!mapInstance) {
+                mapInstance = L.map('map').setView([6.168, -75.591], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(mapInstance);
+                markersLayer = L.layerGroup().addTo(mapInstance);
+            } else {
+                markersLayer.clearLayers();
+            }
+            let bounds = [];
+            registros.forEach(reg => {
+                if (reg.latitud && reg.longitud) {
+                    const latLng = [parseFloat(reg.latitud), parseFloat(reg.longitud)];
+                    bounds.push(latLng);
+                    
+                    const mapImgId = `admin_map_img_${reg.id}_${Math.random().toString(36).substring(2, 7)}`;
+                    const popupContent = `
+                        <div style="font-size: 0.85rem; padding: 4px;">
+                            <b>Poste:</b> ${reg.id_poste || 'N/D'}<br>
+                            <b>Actividad:</b> ${reg.tipo_actividad || 'N/D'}<br>
+                            ${reg.foto_base64 ? `
+                                <img id="${mapImgId}" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" style="width: 120px; height: auto; min-height: 80px; border-radius: 4px; margin-top: 5px; background:#e0e0e0;" alt="Cargando evidencia...">
+                            ` : '<span>Sin evidencia</span>'}
+                        </div>
+                    `;
+                    const marker = L.marker(latLng)
+                        .addTo(markersLayer)
+                        .bindPopup(popupContent);
+                    if (reg.foto_base64) {
+                        marker.on('popupopen', () => {
+                            cargarMiniaturaTablaSegura(reg.foto_base64, mapImgId);
+                        });
+                    }
+                }
+            });
+            if (bounds.length > 0) {
+                mapInstance.fitBounds(bounds, { padding: [50, 50] });
+            }
+            setTimeout(() => {
+                if (mapInstance) mapInstance.invalidateSize();
+            }, 150);
+        }
+
+        async function loginCliente() {
+            const email = document.getElementById("cliente_user").value.trim().toLowerCase();
+            const pass = document.getElementById("cliente_pass").value.trim();
+            if (!email || !pass) return alert("Por favor ingresa usuario y contraseña.");
+            document.querySelector("#login-cliente-screen button").innerText = "Autenticando...";
+            try {
+                const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, password: pass })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error_description || data.msg || "Credenciales incorrectas");
+                localStorage.setItem("supabase_access_token", data.access_token);
+                localStorage.setItem("cliente_email", email);
+                document.getElementById("welcome-user").innerText = `Usuario: ${email}`;
+                
+                document.getElementById("login-cliente-screen").classList.add("hidden");
+                const appScreen = document.getElementById("app-cliente-screen");
+                appScreen.classList.remove("hidden");
+                appScreen.style.display = "flex";
+                
+                setTimeout(() => {
+                    if (mapInstance) mapInstance.invalidateSize();
+                    else initMap(datosCache);
+                }, 150);
+                cargarRegistrosCliente();
+            } catch (err) {
+                alert("Error de autenticación: " + err.message);
+            } finally {
+                document.querySelector("#login-cliente-screen button").innerText = "Ingresar al Panel";
+            }
+        }
+
+        function logoutCliente() {
+            localStorage.removeItem("supabase_access_token");
+            localStorage.removeItem("cliente_email");
+            
+            const appScreen = document.getElementById("app-cliente-screen");
+            appScreen.style.display = "none";
+            appScreen.classList.add("hidden");
+            document.getElementById("login-cliente-screen").classList.remove("hidden");
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedToken = localStorage.getItem("supabase_access_token");
+            const savedEmail = localStorage.getItem("cliente_email");
+            if (savedToken && savedEmail) {
+                document.getElementById("cliente_user").value = savedEmail;
+                document.getElementById("welcome-user").innerText = `Usuario: ${savedEmail}`;
+                
+                document.getElementById("login-cliente-screen").classList.add("hidden");
+                const appScreen = document.getElementById("app-cliente-screen");
+                appScreen.classList.remove("hidden");
+                appScreen.style.display = "flex";
+                
+                setTimeout(() => { if (mapInstance) mapInstance.invalidateSize(); }, 150);
+                cargarRegistrosCliente();
+            }
+        });
+
+        async function cargarRegistrosCliente() {
+            const tbody = document.getElementById("tabla-registros");
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 2rem; color: #94a3b8;">Cargando registros desde Supabase...</td></tr>`;
+            try {
+                const tokenAutenticado = localStorage.getItem("supabase_access_token");
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?select=*&order=id.desc`, {
+                    method: 'GET',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${tokenAutenticado}` }
+                });
+                if (!res.ok) throw new Error("Sesión expirada o sin permisos.");
+                datosCache = await res.json();
+                datosFiltrados = [...datosCache];
+                
+                actualizarDashboardGerencial(datosCache);
+                actualizarAnaliticaCuadrillas(datosCache);
+                poblarSelectActividades(datosCache);
+                renderizarTabla(datosFiltrados);
+                initMap(datosCache);
+            } catch (err) {
+                console.error("Fallo:", err);
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 2rem; color: #dc2626;">Fallo al cargar: ${err.message}</td></tr>`;
+            }
+        }
+
+        function actualizarDashboardGerencial(data) {
+            const total = data.length;
+            document.getElementById("stat-total").innerText = total;
+            if (total === 0) {
+                document.getElementById("stat-con-foto").innerText = "0%";
+                document.getElementById("stat-pendientes").innerText = "0";
+                document.getElementById("stat-recientes").innerText = "0";
+                return;
+            }
+            const conFoto = data.filter(r => r.foto_base64 && r.foto_base64.length > 100).length;
+            const porcentajeFoto = Math.round((conFoto / total) * 100);
+            document.getElementById("stat-con-foto").innerText = `${porcentajeFoto}%`;
+            const pendientes = data.filter(r => r.estado_incidencia && r.estado_incidencia !== 'OPERATIVA' && r.estado_incidencia !== 'ATENDIDA').length;
+            document.getElementById("stat-pendientes").innerText = pendientes;
+            const hace30Dias = new Date();
+            hace30Dias.setDate(hace30Dias.getDate() - 30);
+            const recientes = data.filter(r => r.timestamp && new Date(r.timestamp) >= hace30Dias).length;
+            document.getElementById("stat-recientes").innerText = recientes;
+            document.getElementById("print-fecha-generacion").innerText = `Generado el: ${new Date().toLocaleString()} | Total Registros Auditados: ${total} | Incidencias Pendientes: ${pendientes}`;
+        }
+
+        function actualizarAnaliticaCuadrillas(data) {
+            const contenedor = document.getElementById("lista-cuadrillas-rendimiento");
+            const conteoUsuarios = {};
+            data.forEach(r => {
+                const usr = r.usuario || "Sin identificar";
+                conteoUsuarios[usr] = (conteoUsuarios[usr] || 0) + 1;
+            });
+            let html = "";
+            for (const [usr, count] of Object.entries(conteoUsuarios)) {
+                html += `
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.375rem; padding: 0.5rem 1rem; font-size: 0.85rem;">
+                        <b>👤 ${usr}</b>: <span style="color: #2563eb; font-weight: bold;">${count}</span> inspecciones
+                    </div>
+                `;
+            }
+            contenedor.innerHTML = html || "<p style='font-size:0.8rem; color:#64748b;'>Sin datos de técnicos.</p>";
+        }
+
+        function toggleCuadrillasPanel() {
+            const body = document.getElementById("cuadrillas-body");
+            const icon = document.getElementById("toggle-icon");
+            if (body.classList.contains("open")) {
+                body.classList.remove("open");
+                icon.innerText = "▼ Desplegar";
+            } else {
+                body.classList.add("open");
+                icon.innerText = "▲ Ocultar";
+            }
+        }
+
+        function poblarSelectActividades(data) {
+            const select = document.getElementById("filtro-actividad");
+            const actividadesUnicas = [...new Set(data.map(item => item.tipo_actividad).filter(Boolean))];
+            
+            let html = '<option value="">Todas las actividades</option>';
+            actividadesUnicas.forEach(act => {
+                html += `<option value="${act}">${act}</option>`;
+            });
+            select.innerHTML = html;
+        }
+
+        function aplicarFiltros() {
+            const texto = document.getElementById("filtro-texto").value.toLowerCase();
+            const actividadSeleccionada = document.getElementById("filtro-actividad").value;
+            const estadoSeleccionado = document.getElementById("filtro-estado").value;
+            datosFiltrados = datosCache.filter(reg => {
+                const matchTexto = 
+                    (reg.id_poste && reg.id_poste.toLowerCase().includes(texto)) ||
+                    (reg.sector_barrio && reg.sector_barrio.toLowerCase().includes(texto)) ||
+                    (reg.usuario && reg.usuario.toLowerCase().includes(texto)) ||
+                    (reg.descripcion_trabajo && reg.descripcion_trabajo.toLowerCase().includes(texto));
+                const matchActividad = actividadSeleccionada === "" || reg.tipo_actividad === actividadSeleccionada;
+                
+                let matchEstado = true;
+                const estReg = reg.estado_incidencia || 'OPERATIVA';
+                if (estadoSeleccionado === "PENDIENTE") {
+                    matchEstado = estReg !== 'OPERATIVA' && estReg !== 'ATENDIDA';
+                } else if (estadoSeleccionado === "OPERATIVA") {
+                    matchEstado = estReg === 'OPERATIVA';
+                } else if (estadoSeleccionado === "ATENDIDA") {
+                    matchEstado = estReg === 'ATENDIDA';
+                }
+                return matchTexto && matchActividad && matchEstado;
+            });
+            renderizarTabla(datosFiltrados);
+            initMap(datosFiltrados);
+        }
+
+        function limpiarFiltros() {
+            document.getElementById("filtro-texto").value = "";
+            document.getElementById("filtro-actividad").value = "";
+            document.getElementById("filtro-estado").value = "";
+            datosFiltrados = [...datosCache];
+            renderizarTabla(datosFiltrados);
+            initMap(datosCache);
+        }
+
+        async function marcarAtendida(idRegistro) {
+            if (!confirm("¿Deseas marcar esta incidencia como corregida / atendida?")) return;
+            try {
+                const tokenAutenticado = localStorage.getItem("supabase_access_token");
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${idRegistro}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${tokenAutenticado}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({ estado_incidencia: 'ATENDIDA' })
+                });
+                if (!res.ok) throw new Error("No se pudo actualizar el registro.");
+                alert("Incidencia marcada como atendida correctamente.");
+                cargarRegistrosCliente();
+            } catch (err) {
+                alert("Error al actualizar: " + err.message);
+            }
+        }
+
+        function renderizarTabla(data) {
+            const tbody = document.getElementById("tabla-registros");
+            document.getElementById("total-registros").innerText = data.length;
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 2rem; color: #d97706;">No se encontraron registros en el filtro actual.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = "";
+            data.forEach(reg => {
+                const fechaFormateada = reg.timestamp ? new Date(reg.timestamp).toLocaleString() : "N/D";
+                const estado = reg.estado_incidencia || 'OPERATIVA';
+                
+                let badgeClass = 'badge-ok';
+                if (estado !== 'OPERATIVA' && estado !== 'ATENDIDA') {
+                    badgeClass = 'badge-falla';
+                } else if (estado === 'ATENDIDA') {
+                    badgeClass = 'badge-atendida';
+                }
+                const imgTableId = `table_img_${reg.id}_${Math.random().toString(36).substring(2, 7)}`;
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td style="font-weight: bold; color: #0f172a;">${reg.id_poste || 'N/D'}</td>
+                    <td><span class="badge">${reg.tipo_actividad || 'N/D'}</span></td>
+                    <td><span class="badge ${badgeClass}">${estado}</span></td>
+                    <td>${reg.sector_barrio || 'N/D'}</td>
+                    <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${reg.descripcion_trabajo || ''}">${reg.descripcion_trabajo || 'N/D'}</td>
+                    <td style="color: #64748b;">${reg.usuario || 'N/D'}</td>
+                    <td style="font-family: monospace; font-size: 0.75rem; color: #64748b;">${reg.latitud}, ${reg.longitud}</td>
+                    <td style="font-size: 0.75rem; color: #64748b;">${fechaFormateada}</td>
+                   <td style="text-align: center;">
+                        ${reg.foto_base64 ? `
+                            <button id="btn_${imgTableId}" onclick="verFotoGrande('${reg.id}')" style="background: none; border: none; cursor: pointer; display: none;">
+                                <img id="${imgTableId}" class="thumbnail" alt="Evidencia">
+                            </button>
+                            <span id="loader_${imgTableId}" style="font-size: 0.7rem; color: #94a3b8;">Cargando...</span>
+                        ` : '<span style="font-size: 0.75rem; color: #94a3b8;">Sin foto</span>'}
+                    </td>
+                    <td style="text-align: center;" class="no-print">
+                        ${estado !== 'OPERATIVA' && estado !== 'ATENDIDA' ? `<button onclick="marcarAtendida(${reg.id})" class="btn-action">Marcar Atendida</button>` : '<span style="font-size: 0.7rem; color: #94a3b8;">N/A</span>'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+                if (reg.foto_base64) {
+                    cargarMiniaturaTablaSegura(reg.foto_base64, imgTableId);
+                }
+            });
+        }
+
+        async function cargarMiniaturaTablaSegura(rutaFoto, elementoImgId) {
+            const el = document.getElementById(elementoImgId);
+            const btnEl = document.getElementById(`btn_${elementoImgId}`);
+            const loaderEl = document.getElementById(`loader_${elementoImgId}`);
+            if (!el) return;
+            if (rutaFoto.startsWith('data:') || rutaFoto.startsWith('http')) {
+                el.src = rutaFoto;
+                if(loaderEl) loaderEl.style.display = 'none';
+                if(btnEl) btnEl.style.display = 'inline-block';
+                return;
+            }
+            const token = localStorage.getItem('supabase_access_token');
+            if (!token) return;
+            const rutaLimpia = rutaFoto.startsWith('inspecciones/') ? rutaFoto : `inspecciones/${rutaFoto}`;
+            try {
+                const res = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/evidencias-inspeccion/${rutaLimpia}`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ expiresIn: 300 })
+                });
+                const data = await res.json();
+                
+                if (res.ok && data.signedURL) {
+                    const urlSegura = `${SUPABASE_URL}/storage/v1${data.signedURL}`;
+                    el.src = urlSegura;
+                    if(loaderEl) loaderEl.style.display = 'none';
+                    if(btnEl) btnEl.style.display = 'inline-block';
+                } else {
+                    if(loaderEl) loaderEl.innerText = "Error";
+                }
+            } catch (e) {
+                console.error('Error al solicitar URL firmada para la tabla:', e);
+                if(loaderEl) loaderEl.innerText = "Error";
+            }
+        }
+
+        function verFotoGrande(idRegistro) {
+            const registro = datosFiltrados.find(r => String(r.id) === String(idRegistro));
+            if (registro && registro.foto_base64) {
+                const imgTableId = document.querySelector(`img[id^="table_img_${registro.id}_"]`);
+                if (imgTableId && imgTableId.src) {
+                    document.getElementById("img-modal").src = imgTableId.src;
+                } else {
+                    document.getElementById("img-modal").src = registro.foto_base64;
+                }
+                document.getElementById("modal-foto").classList.remove("hidden");
+            } else {
+                alert("No se encontró la imagen.");
+            }
+        }
+
+        function cerrarModalFoto() {
+            const modal = document.getElementById("modal-foto");
+            modal.classList.add("hidden");
+            document.getElementById("img-modal").src = "";
+        }
+
+        function exportarCSV() {
+            if (datosFiltrados.length === 0) return alert("No hay datos para exportar.");
+            let csvContent = "\uFEFFID Poste,Tipo Actividad,Estado Incidencia,Sector/Barrio,Descripcion,Tecnico,Latitud,Longitud,Fecha,Tiene Evidencia\n";
+            datosFiltrados.forEach(r => {
+                const tieneFoto = r.foto_base64 ? "SI" : "NO";
+                const descripcionLimpia = r.descripcion_trabajo ? r.descripcion_trabajo.replace(/"/g, '""').replace(/\n/g, ' ') : '';
+                
+                const fila = [
+                    `"${r.id_poste || ''}"`,
+                    `"${r.tipo_actividad || ''}"`,
+                    `"${r.estado_incidencia || 'OPERATIVA'}"`,
+                    `"${r.sector_barrio || ''}"`,
+                    `"${descripcionLimpia}"`,
+                    `"${r.usuario || ''}"`,
+                    r.latitud || '',
+                    r.longitud || '',
+                    `"${r.timestamp || ''}"`,
+                    `"${tieneFoto}"`
+                ].join(",");
+                csvContent += fila + "\n";
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `Reporte_Interventoria_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportarPDF() {
+            if (datosFiltrados.length === 0) return alert("No hay datos para generar el reporte PDF.");
+            window.print();
+        }
+    </script>
+</body>
+</html>
