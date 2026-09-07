@@ -132,13 +132,13 @@ function captureGPS() {
 // 6. GUARDAR REGISTRO LOCALMENTE
 // ==========================================
 async function saveRecord() {
-    const idPoste = document.getElementById("id_poste").value;
-    const file = document.getElementById("cameraInput").files[0];
+    const idPoste = document.getElementById("id_poste")?.value || "";
+    const file = document.getElementById("cameraInput")?.files[0];
     
-    const tipo_luminaria = document.getElementById('tipo_luminaria').value;
-    const vatiaje = document.getElementById('vatiaje').value;
-    const lectura_lux = document.getElementById('lectura_lux').value || 'OPTIMO';
-    const evaluacion_lux = document.getElementById('evaluacion_lux').value;
+    const tipo_luminaria = document.getElementById('tipo_luminaria')?.value || "";
+    const vatiaje = document.getElementById('vatiaje')?.value || "";
+    const lectura_lux = document.getElementById('lectura_lux')?.value || 'OPTIMO';
+    const evaluacion_lux = document.getElementById('evaluacion_lux')?.value || "";
     const tipoActividad = document.getElementById("tipo_actividad")?.value || "";
     const estadoIncidencia = document.getElementById("estado_incidencia")?.value || "";
     const sectorBarrio = document.getElementById("sector_barrio")?.value || "";
@@ -358,12 +358,13 @@ async function syncData() {
                 }
 
                 // 2. Preparar el payload asegurando que no vaya ningún campo undefined
+                // 2. Preparar el payload leyendo los datos desde el registro guardado localmente
                 const datosParaEnviar = {
                     id_poste: record.id_poste || '',
-                    tipo_luminaria: tipo_luminaria,   // <--- NUEVO
-                    vatiaje: vatiaje,                 // <--- NUEVO
-                    lectura_lux: lectura_lux,         // <--- NUEVO
-                    evaluacion_lux: evaluacion_lux,   // <--- NUEVO
+                    tipo_luminaria: record.tipo_luminaria || '',
+                    vatiaje: record.vatiaje || '',
+                    lectura_lux: record.lectura_lux || 'OPTIMO',
+                    evaluacion_lux: record.evaluacion_lux || '',
                     tipo_actividad: record.tipo_actividad || '',
                     estado_incidencia: record.estado_incidencia || "OPERATIVA",
                     sector_barrio: record.sector_barrio || '',
