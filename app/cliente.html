@@ -541,9 +541,9 @@
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td style="font-weight: bold; color: #0f172a;">${reg.id_poste || 'N/D'}</td>
-                    <td><strong>${item.tipo_luminaria || 'No especificado'}</strong></td>
-                    <td>${item.vatiaje || 'N/A'}</td>
-                    <td><span class="badge">${item.evaluacion_lux || 'CONFORME'}</span></td>
+                    <td><strong>${reg.tipo_luminaria || 'No especificado'}</strong></td>
+                    <td>${reg.vatiaje || 'N/A'}</td>
+                    <td><span class="badge">${reg.evaluacion_lux || 'CONFORME'}</span></td>
                     <td><span class="badge">${reg.tipo_actividad || 'N/D'}</span></td>
                     <td><span class="badge ${badgeClass}">${estado}</span></td>
                     <td>${reg.sector_barrio || 'N/D'}</td>
