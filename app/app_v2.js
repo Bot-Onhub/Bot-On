@@ -138,7 +138,7 @@ async function saveRecord() {
     const tipo_luminaria = document.getElementById('tipo_luminaria')?.value || "";
     const vatiaje = document.getElementById('vatiaje')?.value || "";
     const lectura_lux = document.getElementById('lectura_lux')?.value ||"";
-    const evaluacion_lux = document.getElementById('evaluacion_lux')?.value || Null;
+    const evaluacion_lux = document.getElementById('evaluacion_lux')?.value || null;
     const tipoActividad = document.getElementById("tipo_actividad")?.value || "";
     const estadoIncidencia = document.getElementById("estado_incidencia")?.value || "";
     const sectorBarrio = document.getElementById("sector_barrio")?.value || "";
@@ -363,7 +363,7 @@ async function syncData() {
                     id_poste: record.id_poste || '',
                     tipo_luminaria: record.tipo_luminaria || '',
                     vatiaje: record.vatiaje || '',
-                    lectura_lux: record.lectura_lux || Null,
+                    lectura_lux: record.lectura_lux || null,
                     evaluacion_lux: record.evaluacion_lux || 'CONFORME',
                     tipo_actividad: record.tipo_actividad || '',
                     estado_incidencia: record.estado_incidencia || "OPERATIVA",
