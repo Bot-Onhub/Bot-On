@@ -137,7 +137,7 @@ async function saveRecord() {
     
     const tipo_luminaria = document.getElementById('tipo_luminaria')?.value || "";
     const vatiaje = document.getElementById('vatiaje')?.value || "";
-    const lectura_lux = document.getElementById('lectura_lux')?.value || 'OPTIMO';
+    const lectura_lux = document.getElementById('lectura_lux')?.value ||"";
     const evaluacion_lux = document.getElementById('evaluacion_lux')?.value || "";
     const tipoActividad = document.getElementById("tipo_actividad")?.value || "";
     const estadoIncidencia = document.getElementById("estado_incidencia")?.value || "";
