@@ -7,13 +7,13 @@
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
   :root { --primary: #5b21b6; --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; }
-  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); color: var(--text-main); margin: 0; padding: 15px; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); color: var(--text-main); margin: 0; padding: 15px; display: flex; flex-direction: column; min-height: 100vh; }
   header { text-align: center; margin-bottom: 20px; }
   header img { height: 60px; object-fit: contain; }
   nav { display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; }
   nav button { padding: 8px 16px; border: 1px solid var(--primary); background: white; color: var(--primary); border-radius: 6px; cursor: pointer; font-weight: bold; }
   nav button.active { background: var(--primary); color: white; }
-  .card { background: var(--card-bg); border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; }
+  .card { background: var(--card-bg); border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; flex-grow: 1; }
   .hidden { display: none; }
   .form-group { margin-bottom: 12px; }
   .form-group label { display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 4px; }
@@ -33,6 +33,9 @@
   .scanner-box { width: 100%; max-width: 400px; margin: 10px auto; border: 2px dashed #cbd5e1; padding: 10px; border-radius: 8px; text-align: center; }
   #reader { width: 100%; }
   .stat-card { background: white; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+  select.estado-dropdown { padding: 4px; border-radius: 4px; border: 1px solid #cbd5e1; font-weight: bold; }
+  footer { text-align: center; margin-top: auto; padding: 20px 0; color: #64748b; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  footer img { height: 24px; object-fit: contain; }
 </style>
 </head>
 <body onload="inicializarApp()">
@@ -77,7 +80,7 @@
         <option value="Almacen">Almacén</option>
       </select>
     </div>
-    <div class="form-group"><label>Estado</label>
+    <div class="form-group"><label>Estado Inicial</label>
       <select id="ped_estado">
         <option value="Pendiente">Pendiente</option>
         <option value="Aprobado">Aprobado</option>
@@ -87,7 +90,8 @@
   </div>
 
   <h4 style="margin-bottom: 5px;">Productos del Pedido</h4>
-  <p style="font-size: 0.8rem; color: #64748b; margin-top: 0;">Escribe el nombre de la prenda en la primera casilla para buscar. El escáner es opcional.</p>
+  <p style="font-size: 0.8rem; color: #ef4444; margin-top: 0;">Nota: Escribe exclusivamente el NOMBRE de la prenda. Si ves números aquí, debes corregir la columna "Producto" en tu hoja maestra de Google Sheets.</p>
+  
   <button class="btn-action" style="margin-bottom: 10px; background: #10b981;" onclick="toggleScanner()">📷 Escáner Opcional (EAN)</button>
   <div id="contenedor-scanner" class="scanner-box hidden">
     <div id="reader"></div>
@@ -115,6 +119,7 @@
   </div>
 
   <div id="admin-pedidos" class="admin-section"><div class="table-container" id="tabla-pedidos-box">Cargando...</div></div>
+  
   <div id="admin-prod" class="admin-section hidden">
     <input type="text" id="filtro-inventario" placeholder="Buscar específicamente por Nombre de Producto..." style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #94a3b8; border-radius:4px; font-weight: bold;" onkeyup="renderizarTablaAdminInventario()">
     <div class="table-container" id="tabla-inventario-box">Cargando...</div>
@@ -134,11 +139,17 @@
   </div>
 </section>
 
+<footer>
+  <span>Powered by <strong>Bot-on</strong></span>
+  <!-- Puedes reemplazar el src por la URL real de tu logo de Bot-on -->
+  <img src="https://cdn-icons-png.flaticon.com/512/4712/4712139.png" alt="Bot-on Logo" style="filter: grayscale(100%);">
+</footer>
+
 <datalist id="lista-clientes"></datalist>
 <datalist id="lista-nombres-productos"></datalist>
 
 <script>
-const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwVN-S6qtPWxjW3oPEbroH1ZZnhhxSeVPj2l3wK9rCkpAqmjsAP_txj_TwutWVikHFsAQ/exec";
+const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyZQrncYmMRmyZ9ld2qsW_UIbvRGDLxTLNhMuyqyubU0yFNLuIwOs0vflv7-LfW2zAPhA/exec";
 
 let baseDatosClientes = [];
 let baseDatosInventario = [];
@@ -147,16 +158,12 @@ let mapaProductosPorNombre = {};
 let baseDatosPedidos = [];
 let html5QrCode = null;
 
+const ESTADOS_PEDIDO = ['Pendiente', 'Aprobado', 'Despachado', 'Entregado', 'Cancelado'];
+
 function inicializarApp() {
   generarNumeroPedido();
-  
-  // Establecer Comprador Genérico por defecto
   document.getElementById('ped_cliente').value = "Comprador Generico";
-  
-  cargarDatosBase().then(() => {
-    autocompletarCliente(); // Cargar datos del genérico si existen
-  });
-
+  cargarDatosBase().then(() => { autocompletarCliente(); });
   document.getElementById('stat_inicio').valueAsDate = new Date();
   document.getElementById('stat_fin').valueAsDate = new Date();
 }
@@ -188,7 +195,7 @@ function procesarCatalogoProductos() {
   let opcionesNombresHTML = "";
 
   baseCatalogoProductos.forEach(p => {
-    let nombre = String(p[0] || "").trim();
+    let nombre = String(p[0] || "").trim(); // Esto depende estrictamente de que tu columna A sea Nombre, no EAN.
     let talla = String(p[1] || "").trim();
     let ean = String(p[2] || "").trim();
     let precio = Number(p[3]) || 0;
@@ -222,7 +229,6 @@ function autocompletarCliente() {
     document.getElementById('ped_ciudad').value = c[4] || "";
     document.getElementById('ped_correo').value = c[5] || "";
   } else {
-    // Limpiar campos si es un cliente nuevo digitado manualmente
     document.getElementById('ped_identificacion').value = "";
     document.getElementById('ped_direccion').value = "";
     document.getElementById('ped_telefono').value = "";
@@ -356,7 +362,7 @@ async function guardarPedido() {
   if (productosArray.length === 0) return alert("Agrega al menos una prenda.");
 
   btnGuardar.disabled = true;
-  btnGuardar.innerText = "Procesando de forma segura para evitar duplicados...";
+  btnGuardar.innerText = "Procesando...";
 
   let fileInput = document.getElementById('ped_soporte');
   let base64Soporte = "", nombreSoporte = "", mimeTypeSoporte = "";
@@ -387,23 +393,57 @@ async function guardarPedido() {
     alert(r.mensaje);
     if(r.estado === "exito") location.reload();
   } catch(e) {
-    alert("Error de conexión. Verifica la base de datos.");
+    alert("Error de conexión con Google Sheets.");
   } finally {
     btnGuardar.disabled = false;
     btnGuardar.innerText = "Guardar Pedido Completo";
   }
 }
 
-// Representación de las 19 columnas de la Pestaña Pedidos
+// Enviar cambio de estado al backend e impactar interfaz instantáneamente
+async function actualizarEstadoPedidoEnNube(nroPedido, nuevoEstado, selectorHTML) {
+  // 1. Actualizar Array Local para refresco rápido
+  const pedido = baseDatosPedidos.find(p => p[0] === nroPedido);
+  if(pedido) pedido[15] = nuevoEstado;
+
+  // 2. Forzar recálculo del Inventario Disponible
+  renderizarTablaAdminInventario();
+
+  // 3. Estilizar el select según el estado
+  if(nuevoEstado === "Entregado" || nuevoEstado === "Despachado") selectorHTML.style.backgroundColor = '#dcfce7';
+  else if(nuevoEstado === "Cancelado") selectorHTML.style.backgroundColor = '#fee2e2';
+  else selectorHTML.style.backgroundColor = '#fff';
+
+  // 4. Enviar a Google Apps Script
+  try {
+    const payload = { accion: "actualizar_estado_pedido", numeroPedido: nroPedido, estado: nuevoEstado };
+    await fetch(URL_GOOGLE_SCRIPT, { method: 'POST', body: JSON.stringify(payload) });
+  } catch(e) {
+    alert("Error de red al actualizar estado en la nube. Actualiza la página.");
+  }
+}
+
 function renderizarTablaAdminPedidos() {
   let html = `<table><tr>
     <th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>ID Cliente</th><th>Forma Pago</th>
     <th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th>
     <th>Producto</th><th>Talla</th><th>EAN</th><th>Cant</th><th>V. Unit</th><th>Total</th>
-    <th>Estado</th><th>Vendedor</th><th>Tipo Pedido</th><th>Soporte</th>
+    <th>Estado (Acción)</th><th>Vendedor</th><th>Tipo Pedido</th><th>Soporte</th>
     </tr>`;
+    
   baseDatosPedidos.forEach(p => {
     let btnSoporte = p[18] ? `<a href="${p[18]}" target="_blank" style="color:var(--primary); font-weight:bold;">Ver</a>` : "N/A";
+    
+    // Generar Select de Estados
+    let estadoActual = String(p[15]).trim();
+    let bgSelect = (estadoActual === "Entregado" || estadoActual === "Despachado") ? 'background:#dcfce7;' : (estadoActual === "Cancelado" ? 'background:#fee2e2;' : 'background:#fff;');
+    let selectEstado = `<select class="estado-dropdown" style="${bgSelect}" onchange="actualizarEstadoPedidoEnNube('${p[0]}', this.value, this)">`;
+    ESTADOS_PEDIDO.forEach(est => {
+      let selected = (estadoActual === est) ? 'selected' : '';
+      selectEstado += `<option value="${est}" ${selected}>${est}</option>`;
+    });
+    selectEstado += `</select>`;
+
     html += `<tr>
       <td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td>${p[4]}</td>
       <td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td>
@@ -411,34 +451,66 @@ function renderizarTablaAdminPedidos() {
       <td style="text-align:center; font-weight:bold;">${p[12]}</td>
       <td>$${Number(p[13]).toLocaleString('es-CO')}</td>
       <td style="color:#047857; font-weight:bold;">$${Number(p[14]).toLocaleString('es-CO')}</td>
-      <td>${p[15]}</td><td>${p[16]}</td><td>${p[17]}</td>
+      <td>${selectEstado}</td><td>${p[16]}</td><td>${p[17]}</td>
       <td>${btnSoporte}</td>
     </tr>`;
   });
   document.getElementById('tabla-pedidos-box').innerHTML = html + "</table>";
 }
 
-// Búsqueda en Inventario por Nombre (Columna 2 = p[2])
 function renderizarTablaAdminInventario() {
   const textoBusqueda = document.getElementById('filtro-inventario').value.toLowerCase();
   
   let html = `<table><tr>
     <th>EAN 13</th><th>Producto</th><th>Talla</th>
     <th>Inv. Inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th>
-    <th style="background:#fef08a;">Saldo Total</th>
-    <th style="background:#fed7aa;">Pendiente Despacho</th>
+    <th style="background:#fef08a;">Saldo Actual</th>
+    <th style="background:#fed7aa;">Reserva (Pendientes)</th>
     <th style="background:#bbf7d0;">DISPONIBLE REAL</th>
     </tr>`;
   
   baseDatosInventario.forEach(i => {
-    const nombreProducto = String(i[2]).toLowerCase();
-    if (nombreProducto.includes(textoBusqueda)) {
+    const eanInventario = String(i[1]).trim();
+    const nombreProducto = String(i[2]).trim();
+    const tallaInventario = String(i[3]).trim();
+    
+    // Filtro visual
+    if (nombreProducto.toLowerCase().includes(textoBusqueda)) {
+      
+      let invInicial = Number(i[4]) || 0;
+      let entradas = Number(i[5]) || 0;
+      let salidas = Number(i[6]) || 0;
+      let salidasD = Number(i[7]) || 0;
+      
+      // Cálculo estricto matemático
+      let saldoTotal = invInicial + entradas - salidas - salidasD;
+
+      // Calcular "Reserva (Pendiente de Despacho)" leyendo pedidos vivos en memoria
+      let reservaPendiente = 0;
+      baseDatosPedidos.forEach(p => {
+        let estadoPedido = String(p[15]).trim().toLowerCase();
+        // Si el pedido no está despachado, entregado o cancelado, retiene inventario
+        if (estadoPedido === 'pendiente' || estadoPedido === 'aprobado') {
+           // Cruzar por EAN (prioritario) o por Nombre + Talla
+           let eanPedido = String(p[11]).trim();
+           let nomPedido = String(p[9]).trim();
+           let tallaPedido = String(p[10]).trim();
+           
+           if ( (eanPedido && eanPedido === eanInventario) || 
+                (nomPedido === nombreProducto && tallaPedido === tallaInventario) ) {
+              reservaPendiente += (Number(p[12]) || 0);
+           }
+        }
+      });
+
+      let disponibleReal = saldoTotal - reservaPendiente;
+
       html += `<tr>
-        <td>${i[1]}</td><td><strong>${i[2]}</strong></td><td>${i[3]}</td>
-        <td>${i[4]}</td><td>${i[5]}</td><td>${i[6]}</td><td>${i[7]}</td>
-        <td style="background:#fef9c3; text-align:center;"><strong>${i[8]}</strong></td>
-        <td style="background:#ffedd5; text-align:center;">${i[9]}</td>
-        <td style="background:#dcfce7; text-align:center; color:#166534; font-size:1.1em;"><strong>${i[10]}</strong></td>
+        <td>${eanInventario}</td><td><strong>${nombreProducto}</strong></td><td>${tallaInventario}</td>
+        <td>${invInicial}</td><td>${entradas}</td><td>${salidas}</td><td>${salidasD}</td>
+        <td style="background:#fef9c3; text-align:center;"><strong>${saldoTotal}</strong></td>
+        <td style="background:#ffedd5; text-align:center; color:#b45309;">${reservaPendiente}</td>
+        <td style="background:#dcfce7; text-align:center; color:#166534; font-size:1.1em;"><strong>${disponibleReal}</strong></td>
       </tr>`;
     }
   });
@@ -449,15 +521,11 @@ function generarCierreCaja() {
   const strInicio = document.getElementById('stat_inicio').value;
   const strFin = document.getElementById('stat_fin').value;
   if (!strInicio || !strFin) return alert("Selecciona fechas válidas.");
-
   const dateInicio = new Date(strInicio + "T00:00:00");
   const dateFin = new Date(strFin + "T23:59:59");
-
-  // Definición estricta de todos los métodos exigidos
   const metodosPagos = ["efectivo", "Mercado Pago", "Addi", "Paypal", "Transferencia a Bancolombia", "Transferencia a Davivienda", "Transferencia a Nequi"];
   let totalesPorPago = {};
   metodosPagos.forEach(m => totalesPorPago[m] = 0);
-  
   let consolidadoProductos = {};
   let granTotalCierre = 0;
 
@@ -465,27 +533,20 @@ function generarCierreCaja() {
     const partesFecha = String(p[1]).split(',')[0].split('/'); 
     if(partesFecha.length === 3) {
       const pDate = new Date(`${partesFecha[2]}-${partesFecha[1].padStart(2,'0')}-${partesFecha[0].padStart(2,'0')}T12:00:00`);
-      
       if (pDate >= dateInicio && pDate <= dateFin) {
-        // 1. Acumular Medios de Pago
         const metodoStr = String(p[4]).trim();
         const valorFila = Number(p[14]) || 0;
-
         let metodoAsignado = metodosPagos.find(m => m.toLowerCase() === metodoStr.toLowerCase());
-        if (metodoAsignado) {
-          totalesPorPago[metodoAsignado] += valorFila;
-        } else {
+        if (metodoAsignado) totalesPorPago[metodoAsignado] += valorFila;
+        else {
           if (totalesPorPago["Otros (No especificado)"] === undefined) totalesPorPago["Otros (No especificado)"] = 0;
           totalesPorPago["Otros (No especificado)"] += valorFila;
         }
         granTotalCierre += valorFila;
-
-        // 2. Consolidar por Referencia y Talla
         const nombreRef = String(p[9]).trim();
         const tallaRef = String(p[10]).trim() || "Única";
         const cantRef = Number(p[12]) || 0;
         const llave = `${nombreRef} - Talla ${tallaRef}`;
-
         if(!consolidadoProductos[llave]) consolidadoProductos[llave] = { cantidad: 0, ingresos: 0 };
         consolidadoProductos[llave].cantidad += cantRef;
         consolidadoProductos[llave].ingresos += valorFila;
@@ -493,46 +554,22 @@ function generarCierreCaja() {
     }
   });
 
-  // Renderizar la Vista Profesional
   let html = `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">`;
-  
-  // Tabla Medios de Pago
-  html += `<div class="stat-card">
-      <h4 style="margin-top:0; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">Flujo por Medio de Pago</h4>
-      <table style="width:100%; border:none; margin-bottom: 10px;">`;
-      
+  html += `<div class="stat-card"><h4 style="margin-top:0; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">Flujo por Medio de Pago</h4><table style="width:100%; border:none; margin-bottom: 10px;">`;
   for (const [metodo, total] of Object.entries(totalesPorPago)) {
-    // Si el valor es 0, lo muestra en gris claro
     let colorTexto = total === 0 ? "#94a3b8" : "#0f172a";
-    html += `<tr><td style="border:none; border-bottom:1px solid #cbd5e1; padding: 6px 0;">${metodo}</td>
-                 <td style="border:none; border-bottom:1px solid #cbd5e1; text-align:right; color: ${colorTexto}; font-weight:bold;">$${total.toLocaleString('es-CO')}</td></tr>`;
+    html += `<tr><td style="border:none; border-bottom:1px solid #cbd5e1; padding: 6px 0;">${metodo}</td><td style="border:none; border-bottom:1px solid #cbd5e1; text-align:right; color: ${colorTexto}; font-weight:bold;">$${total.toLocaleString('es-CO')}</td></tr>`;
   }
-
-  html += `</table>
-      <h3 style="text-align: right; color: var(--primary); margin:0;">Total Periodo: $${granTotalCierre.toLocaleString('es-CO')}</h3>
-    </div>`;
-
-  // Tabla Consolidado por Producto
-  html += `<div class="stat-card">
-      <h4 style="margin-top:0; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">Ventas por Referencia y Talla</h4>
-      <div style="max-height: 400px; overflow-y: auto;">
-        <table style="width:100%; border:none;">
-          <tr><th style="border:none; border-bottom:2px solid #cbd5e1;">Producto</th>
-              <th style="border:none; border-bottom:2px solid #cbd5e1; text-align:center;">Uds.</th>
-              <th style="border:none; border-bottom:2px solid #cbd5e1; text-align:right;">Ingreso</th></tr>`;
-
+  html += `</table><h3 style="text-align: right; color: var(--primary); margin:0;">Total Periodo: $${granTotalCierre.toLocaleString('es-CO')}</h3></div>`;
+  html += `<div class="stat-card"><h4 style="margin-top:0; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">Ventas por Referencia y Talla</h4><div style="max-height: 400px; overflow-y: auto;"><table style="width:100%; border:none;"><tr><th style="border:none; border-bottom:2px solid #cbd5e1;">Producto</th><th style="border:none; border-bottom:2px solid #cbd5e1; text-align:center;">Uds.</th><th style="border:none; border-bottom:2px solid #cbd5e1; text-align:right;">Ingreso</th></tr>`;
   let refs = Object.keys(consolidadoProductos).sort();
-  if (refs.length === 0) {
-    html += `<tr><td colspan="3" style="text-align:center; padding:15px; color:#64748b; border:none;">No se registran ventas en este periodo.</td></tr>`;
-  } else {
+  if (refs.length === 0) html += `<tr><td colspan="3" style="text-align:center; padding:15px; color:#64748b; border:none;">No se registran ventas en este periodo.</td></tr>`;
+  else {
     refs.forEach(llave => {
       let data = consolidadoProductos[llave];
-      html += `<tr><td style="border:none; border-bottom:1px solid #e2e8f0; padding: 6px 0; font-size:0.9em;">${llave}</td>
-                   <td style="border:none; border-bottom:1px solid #e2e8f0; text-align:center; font-weight:bold;">${data.cantidad}</td>
-                   <td style="border:none; border-bottom:1px solid #e2e8f0; text-align:right; color: #047857;">$${data.ingresos.toLocaleString('es-CO')}</td></tr>`;
+      html += `<tr><td style="border:none; border-bottom:1px solid #e2e8f0; padding: 6px 0; font-size:0.9em;">${llave}</td><td style="border:none; border-bottom:1px solid #e2e8f0; text-align:center; font-weight:bold;">${data.cantidad}</td><td style="border:none; border-bottom:1px solid #e2e8f0; text-align:right; color: #047857;">$${data.ingresos.toLocaleString('es-CO')}</td></tr>`;
     });
   }
-
   html += `</table></div></div></div>`;
   document.getElementById('contenedor-estadisticas-box').innerHTML = html;
 }
