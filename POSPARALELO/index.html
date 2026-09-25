@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paralelo - Sistema de Gestión</title>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<style>
+  :root {
+    --primary: #5b21b6;
+    --primary-dark: #4c1d95;
+    --bg-color: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+  }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); color: var(--text-main); margin: 0; padding: 15px; }
+  header { text-align: center; margin-bottom: 20px; }
+  header img { height: 60px; object-fit: contain; }
+  nav { display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; }
+  nav button { padding: 8px 16px; border: 1px solid var(--primary); background: white; color: var(--primary); border-radius: 6px; cursor: pointer; font-weight: bold; }
+  nav button.active { background: var(--primary); color: white; }
+  .card { background: var(--card-bg); border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; }
+  .hidden { display: none; }
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 4px; }
+  .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+  .product-row { display: grid; grid-template-columns: 2fr 1fr 1.2fr 0.8fr 1fr 1fr auto; gap: 6px; align-items: center; background: #f1f5f9; padding: 8px; border-radius: 6px; margin-bottom: 8px; }
+  .btn-submit { background: var(--primary); color: white; width: 100%; border: none; padding: 12px; border-radius: 6px; font-size: 1rem; cursor: pointer; font-weight: bold; margin-top: 10px; }
+  .btn-action { background: #0284c7; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+  .btn-del { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; }
+  .table-container { overflow-x: auto; margin-top: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
+  th { background: #f1f5f9; }
+  .admin-nav { display: flex; gap: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 10px; overflow-x: auto; }
+  .admin-nav button { padding: 6px 12px; background: none; border: none; font-weight: bold; color: #64748b; cursor: pointer; }
+  .admin-nav button.active-sub { color: var(--primary); border-bottom: 3px solid var(--primary); }
+  .img-preview { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1; }
+</style>
+</head>
+<body onload="inicializarApp()">
+
+<header>
+  <img src="https://static.wixstatic.com/media/d0ce54_32d30a8159fd44d4a26c62563d7bfc38~mv2.jpg" alt="Paralelo Logo">
+  <h2 style="margin:5px 0 0 0; color: var(--primary);">PARALELO</h2>
+</header>
+
+<nav>
+  <button id="btn-tab-pedidos" class="active" onclick="cambiarPestaña('pedidos')">Nuevo Pedido</button>
+  <button id="btn-tab-inventario" onclick="cambiarPestaña('inventario')">Escanear EAN</button>
+  <button id="btn-tab-admin" onclick="cambiarPestaña('admin')">Panel Admin</button>
+</nav>
+
+<!-- PESTAÑA NUEVO PEDIDO -->
+<section id="sec-pedidos" class="card">
+  <h3>Registro de Pedido</h3>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+    <div class="form-group"><label>N° Pedido</label><input type="text" id="ped_nro" readonly></div>
+    <div class="form-group"><label>Nombre Cliente</label><input type="text" id="ped_cliente" list="lista-clientes" onchange="autocompletarCliente()"></div>
+    <div class="form-group"><label>Identificación</label><input type="text" id="ped_identificacion"></div>
+    <div class="form-group"><label>Sucursal</label><input type="text" id="ped_sucursal" value="Principal"></div>
+    <div class="form-group"><label>Dirección</label><input type="text" id="ped_direccion"></div>
+    <div class="form-group"><label>Teléfono</label><input type="text" id="ped_telefono"></div>
+    <div class="form-group"><label>Ciudad</label><input type="text" id="ped_ciudad"></div>
+    <div class="form-group"><label>Correo</label><input type="email" id="ped_correo"></div>
+    <div class="form-group"><label>Vendedor</label><input type="text" id="ped_vendedor"></div>
+    <div class="form-group"><label>Tipo Pedido</label>
+      <select id="ped_tipopedido">
+        <option value="Venta Directa">Venta Directa</option>
+        <option value="Consignacion">Consignación</option>
+        <option value="Almacen">Almacén</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Estado</label>
+      <select id="ped_estado">
+        <option value="Pendiente">Pendiente</option>
+        <option value="Aprobado">Aprobado</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Soporte de Pago (Imagen)</label><input type="file" id="ped_soporte" accept="image/*"></div>
+  </div>
+
+  <h4>Productos del Pedido</h4>
+  <div id="contenedor-productos"></div>
+  <button class="btn-action" onclick="agregarFilaProducto()">+ Agregar Prenda</button>
+
+  <div style="text-align: right; margin-top: 15px;">
+    <h3>Total Pedido: $<span id="gran_total">0</span></h3>
+  </div>
+
+  <button class="btn-submit" onclick="guardarPedido()">Guardar Pedido Completo</button>
+</section>
+
+<!-- PESTAÑA ESCÁNER CÁMARA -->
+<section id="sec-inventario" class="card hidden">
+  <h3>Lector de Código EAN 13</h3>
+  <div id="reader" style="width: 100%; max-width: 450px; margin: 0 auto;"></div>
+  <div id="scan_feedback" style="text-align:center; font-weight:bold; margin-top:10px; color:var(--primary);"></div>
+</section>
+
+<!-- PESTAÑA ADMIN -->
+<section id="sec-admin" class="card hidden">
+  <h3>Panel Administrativo - Paralelo</h3>
+  <button class="btn-action" style="width:100%; margin-bottom:10px;" onclick="cargarDatosBase()">Actualizar Datos Nube</button>
+  
+  <div class="admin-nav">
+    <button id="subtab-admin-pedidos" class="active-sub" onclick="cambiarSubPestaña('admin-pedidos')">Pedidos</button>
+    <button id="subtab-admin-prod" onclick="cambiarSubPestaña('admin-prod')">Inventario General</button>
+  </div>
+
+  <div id="admin-pedidos" class="admin-section"><div class="table-container" id="tabla-pedidos-box">Cargando...</div></div>
+  <div id="admin-prod" class="admin-section hidden"><div class="table-container" id="tabla-inventario-box">Cargando...</div></div>
+</section>
+
+<datalist id="lista-clientes"></datalist>
+<datalist id="lista-nombres-productos"></datalist>
+
+<script>
+const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyuoMruomkZPsed0UbILzFq4MN0ObBzvzEE-bw-2RDJUeaSOb1vnUVlPnMsiqfEROwi/exec";
+
+let baseDatosClientes = [];
+let baseDatosProductos = []; // Lista cruda
+let mapaProductosPorNombre = {}; // { "Top Serene": [ {talla: "S", ean: "123", precio: 50000}, ... ] }
+let baseDatosPedidos = [];
+
+function inicializarApp() {
+  generarNumeroPedido();
+  cargarDatosBase();
+}
+
+function generarNumeroPedido() {
+  document.getElementById('ped_nro').value = "PAR-" + Math.floor(100000 + Math.random() * 900000);
+}
+
+async function cargarDatosBase() {
+  try {
+    const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_datos_iniciales&_ts=" + new Date().getTime());
+    const data = await res.json();
+    
+    baseDatosClientes = data.clientes || [];
+    baseDatosProductos = data.inventario || [];
+    baseDatosPedidos = data.pedidos || [];
+
+    procesarCatalogoProductos();
+    renderizarClientesDataList();
+    renderizarTablaAdminPedidos();
+    renderizarTablaAdminInventario();
+  } catch (e) {
+    console.error("Error cargando base de datos:", e);
+  }
+}
+
+// Organiza más de 3.000 productos en un mapa estructurado por Nombre Prenda
+function procesarCatalogoProductos() {
+  mapaProductosPorNombre = {};
+  let opcionesNombresHTML = "";
+
+  baseDatosProductos.forEach(p => {
+    let ean = String(p[1] || "").trim();
+    let nombre = String(p[2] || "").trim();
+    let talla = String(p[3] || "").trim();
+    let precio = Number(p[4]) || 0; // O el campo asignado a precio unitario
+
+    if (nombre) {
+      if (!mapaProductosPorNombre[nombre]) {
+        mapaProductosPorNombre[nombre] = [];
+        opcionesNombresHTML += `<option value="${nombre}">`;
+      }
+      mapaProductosPorNombre[nombre].push({ talla: talla, ean: ean, precio: precio });
+    }
+  });
+
+  document.getElementById('lista-nombres-productos').innerHTML = opcionesNombresHTML;
+  if (document.getElementById('contenedor-productos').children.length === 0) {
+    agregarFilaProducto();
+  }
+}
+
+function renderizarClientesDataList() {
+  let html = "";
+  baseDatosClientes.forEach(c => { if(c[0]) html += `<option value="${c[0]}">`; });
+  document.getElementById('lista-clientes').innerHTML = html;
+}
+
+function autocompletarCliente() {
+  let nombre = document.getElementById('ped_cliente').value;
+  let c = baseDatosClientes.find(cli => cli[0] === nombre);
+  if (c) {
+    document.getElementById('ped_identificacion').value = c[1] || "";
+    document.getElementById('ped_direccion').value = c[2] || "";
+    document.getElementById('ped_telefono').value = c[3] || "";
+    document.getElementById('ped_ciudad').value = c[4] || "";
+    document.getElementById('ped_correo').value = c[5] || "";
+  }
+}
+
+function agregarFilaProducto() {
+  const div = document.createElement('div');
+  div.className = 'product-row';
+  div.innerHTML = `
+    <div>
+      <input type="text" class="row-prod" list="lista-nombres-productos" placeholder="Buscar Prenda..." onchange="alSeleccionarProducto(this)">
+    </div>
+    <div>
+      <select class="row-talla" onchange="alSeleccionarTalla(this)">
+        <option value="">Talla</option>
+      </select>
+    </div>
+    <div>
+      <input type="text" class="row-ean" placeholder="Código EAN 13" readonly>
+    </div>
+    <div>
+      <input type="number" class="row-cant" value="1" min="1" onchange="calcularTotales()">
+    </div>
+    <div>
+      <input type="number" class="row-vuni" placeholder="Precio" onchange="calcularTotales()">
+    </div>
+    <div>
+      <input type="number" class="row-subtotal" value="0" readonly>
+    </div>
+    <button class="btn-del" onclick="eliminarFila(this)">X</button>
+  `;
+  document.getElementById('contenedor-productos').appendChild(div);
+}
+
+function alSeleccionarProducto(inputNom) {
+  const row = inputNom.closest('.product-row');
+  const nombreProd = inputNom.value;
+  const selectTalla = row.querySelector('.row-talla');
+  
+  selectTalla.innerHTML = '<option value="">Talla</option>';
+  row.querySelector('.row-ean').value = "";
+  
+  if (mapaProductosPorNombre[nombreProd]) {
+    mapaProductosPorNombre[nombreProd].forEach(item => {
+      selectTalla.innerHTML += `<option value="${item.talla}">${item.talla}</option>`;
+    });
+    if (mapaProductosPorNombre[nombreProd].length === 1) {
+      selectTalla.selectedIndex = 1;
+      alSeleccionarTalla(selectTalla);
+    }
+  }
+}
+
+function alSeleccionarTalla(selectTalla) {
+  const row = selectTalla.closest('.product-row');
+  const nombreProd = row.querySelector('.row-prod').value;
+  const talla = selectTalla.value;
+
+  if (mapaProductosPorNombre[nombreProd]) {
+    const item = mapaProductosPorNombre[nombreProd].find(x => x.talla === talla);
+    if (item) {
+      row.querySelector('.row-ean').value = item.ean;
+      if (item.precio > 0) row.querySelector('.row-vuni').value = item.precio;
+    }
+  }
+  calcularTotales();
+}
+
+function eliminarFila(btn) {
+  btn.closest('.product-row').remove();
+  calcularTotales();
+}
+
+function calcularTotales() {
+  let granTotal = 0;
+  document.querySelectorAll('.product-row').forEach(row => {
+    let cant = parseFloat(row.querySelector('.row-cant').value) || 0;
+    let vuni = parseFloat(row.querySelector('.row-vuni').value) || 0;
+    let sub = cant * vuni;
+    row.querySelector('.row-subtotal').value = sub;
+    granTotal += sub;
+  });
+  document.getElementById('gran_total').innerText = granTotal.toLocaleString('es-CO');
+}
+
+async function guardarPedido() {
+  const filas = document.querySelectorAll('.product-row');
+  let productosArray = [];
+
+  filas.forEach(row => {
+    let prod = row.querySelector('.row-prod').value;
+    if (prod) {
+      productosArray.push({
+        producto: prod,
+        talla: row.querySelector('.row-talla').value,
+        codigoEan: row.querySelector('.row-ean').value,
+        cantidad: row.querySelector('.row-cant').value,
+        valorUnitario: row.querySelector('.row-vuni').value,
+        total: row.querySelector('.row-subtotal').value
+      });
+    }
+  });
+
+  if (productosArray.length === 0) {
+    alert("Debe agregar al menos una prenda al pedido.");
+    return;
+  }
+
+  // Lectura e ingestión del Soporte de Pago en formato Base64
+  let fileInput = document.getElementById('ped_soporte');
+  let base64Soporte = "";
+  let nombreSoporte = "";
+  let mimeTypeSoporte = "";
+
+  if (fileInput.files.length > 0) {
+    let file = fileInput.files[0];
+    nombreSoporte = file.name;
+    mimeTypeSoporte = file.type;
+    base64Soporte = await convertirFileABase64(file);
+  }
+
+  const payload = {
+    accion: "guardar_pedido",
+    numeroPedido: document.getElementById('ped_nro').value,
+    nombreCliente: document.getElementById('ped_cliente').value,
+    identificacion: document.getElementById('ped_identificacion').value,
+    sucursal: document.getElementById('ped_sucursal').value,
+    direccion: document.getElementById('ped_direccion').value,
+    telefono: document.getElementById('ped_telefono').value,
+    ciudad: document.getElementById('ped_ciudad').value,
+    correo: document.getElementById('ped_correo').value,
+    vendedor: document.getElementById('ped_vendedor').value,
+    tipoPedido: document.getElementById('ped_tipopedido').value,
+    estado: document.getElementById('ped_estado').value,
+    soportePagoBase64: base64Soporte,
+    soportePagoNombre: nombreSoporte,
+    soportePagoMimeType: mimeTypeSoporte,
+    productosArray: productosArray
+  };
+
+  try {
+    const res = await fetch(URL_GOOGLE_SCRIPT, { method: 'POST', body: JSON.stringify(payload) });
+    const r = await res.json();
+    alert(r.mensaje);
+    if(r.estado === "exito") {
+      location.reload();
+    }
+  } catch(e) {
+    alert("Error al guardar el pedido.");
+  }
+}
+
+function convertirFileABase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
+function renderizarTablaAdminPedidos() {
+  let html = `<table><tr>
+    <th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Producto</th><th>Talla</th><th>Cant</th><th>Total</th><th>Estado</th><th>Soporte Pago</th><th>Acción</th>
+  </tr>`;
+
+  baseDatosPedidos.forEach(p => {
+    let numPed = p[0];
+    let cliente = p[2];
+    let prod = p[9];
+    let talla = p[10];
+    let cant = p[12];
+    let total = p[14];
+    let estado = p[15];
+    let urlSoporte = p[18];
+
+    let soporteHTML = urlSoporte ? `<a href="${urlSoporte}" target="_blank"><img src="${urlSoporte}" class="img-preview" alt="Ver Soporte"></a>` : 'Sin Soporte';
+    let btnDespachar = (estado.toLowerCase() !== 'despachado') ? `<button class="btn-action" onclick="despacharPedido('${numPed}')">Despachar</button>` : 'Despachado';
+
+    html += `<tr>
+      <td>${numPed}</td><td>${p[1]}</td><td>${cliente}</td><td>${prod}</td><td>${talla}</td><td>${cant}</td><td>$${Number(total).toLocaleString('es-CO')}</td><td>${estado}</td><td>${soporteHTML}</td><td>${btnDespachar}</td>
+    </tr>`;
+  });
+
+  document.getElementById('tabla-pedidos-box').innerHTML = html + "</table>";
+}
+
+function renderizarTablaAdminInventario() {
+  let html = `<table><tr>
+    <th>EAN 13</th><th>Producto</th><th>Talla</th><th>Inv Inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th><th>En Pedido</th><th>Disponible</th>
+  </tr>`;
+
+  baseDatosProductos.forEach(i => {
+    html += `<tr>
+      <td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td>${i[6]}</td><td><strong>${i[8]}</strong></td><td>${i[9]}</td><td><strong>${i[10]}</strong></td>
+    </tr>`;
+  });
+
+  document.getElementById('tabla-inventario-box').innerHTML = html + "</table>";
+}
+
+async function despacharPedido(numPedido) {
+  if (!confirm(`¿Confirmas el despacho del pedido #${numPedido}? Esto descontará inventario y generará la Remisión PDF.`)) return;
+
+  try {
+    const res = await fetch(URL_GOOGLE_SCRIPT, {
+      method: 'POST',
+      body: JSON.stringify({ accion: "despachar_pedido", numeroPedido: numPedido, bodegaOrigen: "Inventario" })
+    });
+    const r = await res.json();
+    alert(r.mensaje);
+    if (r.pdfUrl) window.open(r.pdfUrl, '_blank');
+    cargarDatosBase();
+  } catch(e) {
+    alert("Error procesando el despacho.");
+  }
+}
+
+function cambiarPestaña(tab) {
+  document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + tab).classList.remove('hidden');
+  document.getElementById('btn-tab-' + tab).classList.add('active');
+}
+
+function cambiarSubPestaña(sub) {
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.add('hidden'));
+  document.querySelectorAll('.admin-nav button').forEach(b => b.classList.remove('active-sub'));
+  document.getElementById(sub).classList.remove('hidden');
+  document.getElementById('subtab-' + sub).classList.add('active-sub');
+}
+</script>
+</body>
+</html>
