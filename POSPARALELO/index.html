@@ -189,17 +189,25 @@ async function cargarDatosBase() {
     const respuesta = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_datos_iniciales");
     const data = await respuesta.json();
     
-    // Actualizamos las variables globales con los datos frescos de Sheets
+    // 1. Asignación COMPLETA de todas las variables globales (Esto fue lo que faltó)
     baseDatosPedidos = data.pedidos || [];
     baseDatosInventario = data.inventario || [];
+    baseDatosClientes = data.clientes || [];
+    baseDatosProductos = data.productos || []; 
     
-    // REFRESCAR LA INTERFAZ VISUAL:
-    // Llama aquí a tus funciones de renderizado para que la app pinte los nuevos números
+    // 2. Aquí debes ocultar tu pantalla de carga según el ID que uses en tu HTML
+    // Ejemplo: document.getElementById('pantalla-carga').style.display = 'none';
+    
+    // 3. Renderizar las vistas
+    // Nota: Verifica que estas funciones tengan el nombre exacto que usas en el resto de tu código
     if (typeof renderizarTablaPedidos === 'function') renderizarTablaPedidos();
-    if (typeof renderizarTablaInventario === 'function') renderizarTablaInventario();
+    if (typeof renderizarAdminInventario === 'function') renderizarAdminInventario();
     
   } catch (e) {
     console.error("Error al sincronizar datos:", e);
+    // Es vital quitar el "Cargando..." incluso si hay error para que no quede congelado
+    // Ejemplo: document.getElementById('pantalla-carga').style.display = 'none';
+    alert("Hubo un error al cargar la base de datos.");
   }
 }
 
