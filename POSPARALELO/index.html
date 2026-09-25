@@ -90,8 +90,6 @@
   </div>
 
   <h4 style="margin-bottom: 5px;">Productos del Pedido</h4>
-  <p style="font-size: 0.8rem; color: #ef4444; margin-top: 0;">Nota: Escribe exclusivamente el NOMBRE de la prenda. Si ves números aquí, debes corregir la columna "Producto" en tu hoja maestra de Google Sheets.</p>
-  
   <button class="btn-action" style="margin-bottom: 10px; background: #10b981;" onclick="toggleScanner()">📷 Escáner Opcional (EAN)</button>
   <div id="contenedor-scanner" class="scanner-box hidden">
     <div id="reader"></div>
@@ -141,8 +139,7 @@
 
 <footer>
   <span>Powered by <strong>Bot-on</strong></span>
-  <!-- Puedes reemplazar el src por la URL real de tu logo de Bot-on -->
-  <img src="https://cdn-icons-png.flaticon.com/512/4712/4712139.png" alt="Bot-on Logo" style="filter: grayscale(100%);">
+  <img src="https://static.wixstatic.com/media/d0ce54_c999d1aa9976438a98b0f5b2157b7adc~mv2.png" alt="Bot-on Logo">
 </footer>
 
 <datalist id="lista-clientes"></datalist>
@@ -195,10 +192,14 @@ function procesarCatalogoProductos() {
   let opcionesNombresHTML = "";
 
   baseCatalogoProductos.forEach(p => {
-    let nombre = String(p[0] || "").trim(); // Esto depende estrictamente de que tu columna A sea Nombre, no EAN.
-    let talla = String(p[1] || "").trim();
-    let ean = String(p[2] || "").trim();
-    let precio = Number(p[3]) || 0;
+    // ESTRUCTURA CORREGIDA SEGÚN TU SHEET (0: ID, 1: Nombre, 2: Talla, 3: Precio)
+    let ean = String(p[0] || "").trim();
+    let nombre = String(p[1] || "").trim();
+    let talla = String(p[2] || "").trim();
+    
+    // Extracción exclusiva de dígitos para evitar que $ o comas generen NaN
+    let precioStr = String(p[3] || "").replace(/[^0-9]/g, "");
+    let precio = Number(precioStr) || 0;
 
     if (nombre) {
       if (!mapaProductosPorNombre[nombre]) {
@@ -264,6 +265,7 @@ function alSeleccionarProducto(inputNom, forzarTalla = null) {
   
   selectTalla.innerHTML = '<option value="">Talla</option>';
   row.querySelector('.row-ean').value = "";
+  row.querySelector('.row-vuni').value = "";
   
   if (mapaProductosPorNombre[nombreProd]) {
     mapaProductosPorNombre[nombreProd].forEach(item => {
@@ -327,12 +329,14 @@ function iniciarEscaner() {
   if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
   html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 150 } }, 
     (decodedText) => {
-      const prodEncontrado = baseCatalogoProductos.find(p => String(p[2]).trim() === String(decodedText).trim());
+      // Búsqueda en el catálogo maestro corregida para apuntar al índice [0] (ID)
+      const prodEncontrado = baseCatalogoProductos.find(p => String(p[0]).trim() === String(decodedText).trim());
       if (prodEncontrado) {
-        agregarFilaProducto({ nombre: prodEncontrado[0], talla: prodEncontrado[1] });
+        // Enviar el Nombre (índice 1) y Talla (índice 2)
+        agregarFilaProducto({ nombre: prodEncontrado[1], talla: prodEncontrado[2] });
         toggleScanner();
       } else {
-        alert("EAN " + decodedText + " no encontrado en el maestro de Productos.");
+        alert("ID/EAN " + decodedText + " no encontrado en el maestro de Productos.");
       }
     },
     (errorMessage) => {}
@@ -400,21 +404,16 @@ async function guardarPedido() {
   }
 }
 
-// Enviar cambio de estado al backend e impactar interfaz instantáneamente
 async function actualizarEstadoPedidoEnNube(nroPedido, nuevoEstado, selectorHTML) {
-  // 1. Actualizar Array Local para refresco rápido
   const pedido = baseDatosPedidos.find(p => p[0] === nroPedido);
   if(pedido) pedido[15] = nuevoEstado;
 
-  // 2. Forzar recálculo del Inventario Disponible
   renderizarTablaAdminInventario();
 
-  // 3. Estilizar el select según el estado
   if(nuevoEstado === "Entregado" || nuevoEstado === "Despachado") selectorHTML.style.backgroundColor = '#dcfce7';
   else if(nuevoEstado === "Cancelado") selectorHTML.style.backgroundColor = '#fee2e2';
   else selectorHTML.style.backgroundColor = '#fff';
 
-  // 4. Enviar a Google Apps Script
   try {
     const payload = { accion: "actualizar_estado_pedido", numeroPedido: nroPedido, estado: nuevoEstado };
     await fetch(URL_GOOGLE_SCRIPT, { method: 'POST', body: JSON.stringify(payload) });
@@ -434,7 +433,6 @@ function renderizarTablaAdminPedidos() {
   baseDatosPedidos.forEach(p => {
     let btnSoporte = p[18] ? `<a href="${p[18]}" target="_blank" style="color:var(--primary); font-weight:bold;">Ver</a>` : "N/A";
     
-    // Generar Select de Estados
     let estadoActual = String(p[15]).trim();
     let bgSelect = (estadoActual === "Entregado" || estadoActual === "Despachado") ? 'background:#dcfce7;' : (estadoActual === "Cancelado" ? 'background:#fee2e2;' : 'background:#fff;');
     let selectEstado = `<select class="estado-dropdown" style="${bgSelect}" onchange="actualizarEstadoPedidoEnNube('${p[0]}', this.value, this)">`;
@@ -474,7 +472,6 @@ function renderizarTablaAdminInventario() {
     const nombreProducto = String(i[2]).trim();
     const tallaInventario = String(i[3]).trim();
     
-    // Filtro visual
     if (nombreProducto.toLowerCase().includes(textoBusqueda)) {
       
       let invInicial = Number(i[4]) || 0;
@@ -482,16 +479,12 @@ function renderizarTablaAdminInventario() {
       let salidas = Number(i[6]) || 0;
       let salidasD = Number(i[7]) || 0;
       
-      // Cálculo estricto matemático
       let saldoTotal = invInicial + entradas - salidas - salidasD;
 
-      // Calcular "Reserva (Pendiente de Despacho)" leyendo pedidos vivos en memoria
       let reservaPendiente = 0;
       baseDatosPedidos.forEach(p => {
         let estadoPedido = String(p[15]).trim().toLowerCase();
-        // Si el pedido no está despachado, entregado o cancelado, retiene inventario
         if (estadoPedido === 'pendiente' || estadoPedido === 'aprobado') {
-           // Cruzar por EAN (prioritario) o por Nombre + Talla
            let eanPedido = String(p[11]).trim();
            let nomPedido = String(p[9]).trim();
            let tallaPedido = String(p[10]).trim();
