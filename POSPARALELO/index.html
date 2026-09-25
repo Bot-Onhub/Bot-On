@@ -161,7 +161,7 @@ table th {
 <datalist id="lista-nombres-productos"></datalist>
 
 <script>
-const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbz8tnABtLwlQdBUnOQWqS9_jVo0RutbhqRYCZ4VDdsnGIEpg5c0JH5OOlezzPMQRJuWqQ/exec"; // NO OLVIDES REEMPLAZAR ESTO
+const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwQMX2stTLP88q-R-r1juQsm2dIdBft8eCZSZWC3prLQG8zBDS232QJ5h4Y5Wn35vkGZA/exec"; // NO OLVIDES REEMPLAZAR ESTO
 
 let baseDatosClientes = [];
 let baseDatosInventario = [];
@@ -186,19 +186,20 @@ function generarNumeroPedido() {
 
 async function cargarDatosBase() {
   try {
-    const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_datos_iniciales&_ts=" + new Date().getTime());
-    const data = await res.json();
-    baseDatosClientes = data.clientes || [];
-    baseDatosInventario = data.inventario || [];
-    baseCatalogoProductos = data.productos || [];
+    const respuesta = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_datos_iniciales");
+    const data = await respuesta.json();
+    
+    // Actualizamos las variables globales con los datos frescos de Sheets
     baseDatosPedidos = data.pedidos || [];
-
-    procesarCatalogoProductos();
-    renderizarClientesDataList();
-    renderizarTablaAdminPedidos();
-    renderizarTablaAdminInventario();
+    baseDatosInventario = data.inventario || [];
+    
+    // REFRESCAR LA INTERFAZ VISUAL:
+    // Llama aquí a tus funciones de renderizado para que la app pinte los nuevos números
+    if (typeof renderizarTablaPedidos === 'function') renderizarTablaPedidos();
+    if (typeof renderizarTablaInventario === 'function') renderizarTablaInventario();
+    
   } catch (e) {
-    console.error("Error cargando base de datos:", e);
+    console.error("Error al sincronizar datos:", e);
   }
 }
 
