@@ -90,7 +90,7 @@
   </div>
 
   <h4 style="margin-bottom: 5px;">Productos del Pedido</h4>
-  <button class="btn-action" style="margin-bottom: 10px; background: #10b981;" onclick="toggleScanner()">📷 Escáner Opcional (EAN)</button>
+  <button class="btn-action" style="margin-bottom: 10px; background: #10b981;" onclick="toggleScanner()">📷 Escáner Código de Barras</button>
   <div id="contenedor-scanner" class="scanner-box hidden">
     <div id="reader"></div>
     <button class="btn-del" style="margin-top:10px;" onclick="toggleScanner()">Cerrar Escáner</button>
@@ -138,7 +138,7 @@
 </section>
 
 <footer>
-  <span>Powered by <strong>Bot-on</strong></span>
+  <span>Powered by</span>
   <img src="https://static.wixstatic.com/media/d0ce54_c999d1aa9976438a98b0f5b2157b7adc~mv2.png" alt="Bot-on Logo">
 </footer>
 
@@ -146,7 +146,7 @@
 <datalist id="lista-nombres-productos"></datalist>
 
 <script>
-const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyZQrncYmMRmyZ9ld2qsW_UIbvRGDLxTLNhMuyqyubU0yFNLuIwOs0vflv7-LfW2zAPhA/exec";
+const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzH56JH5eoStRjAnOeV96PKqfXKcLgHZTsdVDVw9_VP4LfbUfv12xZjg4nHcKK0p0Ofcg/exec"; // NO OLVIDES REEMPLAZAR ESTO
 
 let baseDatosClientes = [];
 let baseDatosInventario = [];
@@ -192,12 +192,9 @@ function procesarCatalogoProductos() {
   let opcionesNombresHTML = "";
 
   baseCatalogoProductos.forEach(p => {
-    // ESTRUCTURA CORREGIDA SEGÚN TU SHEET (0: ID, 1: Nombre, 2: Talla, 3: Precio)
     let ean = String(p[0] || "").trim();
     let nombre = String(p[1] || "").trim();
     let talla = String(p[2] || "").trim();
-    
-    // Extracción exclusiva de dígitos para evitar que $ o comas generen NaN
     let precioStr = String(p[3] || "").replace(/[^0-9]/g, "");
     let precio = Number(precioStr) || 0;
 
@@ -327,20 +324,33 @@ function toggleScanner() {
 
 function iniciarEscaner() {
   if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-  html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 150 } }, 
+  
+  // Configuración ampliada y específica para códigos EAN/Barras
+  const scannerConfig = { 
+    fps: 10, 
+    qrbox: { width: 300, height: 150 }, // Rectangular y ancho para abarcar EAN completo
+    formatsToSupport: [ 
+      Html5QrcodeSupportedFormats.EAN_13, 
+      Html5QrcodeSupportedFormats.EAN_8, 
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.UPC_A
+    ]
+  };
+
+  html5QrCode.start({ facingMode: "environment" }, scannerConfig, 
     (decodedText) => {
-      // Búsqueda en el catálogo maestro corregida para apuntar al índice [0] (ID)
       const prodEncontrado = baseCatalogoProductos.find(p => String(p[0]).trim() === String(decodedText).trim());
       if (prodEncontrado) {
-        // Enviar el Nombre (índice 1) y Talla (índice 2)
         agregarFilaProducto({ nombre: prodEncontrado[1], talla: prodEncontrado[2] });
         toggleScanner();
       } else {
-        alert("ID/EAN " + decodedText + " no encontrado en el maestro de Productos.");
+        alert("EAN / Código " + decodedText + " no encontrado en la base de datos.");
       }
     },
-    (errorMessage) => {}
-  ).catch(err => alert("Error iniciando cámara: " + err));
+    (errorMessage) => {
+      // Los errores de lectura (ruido de cámara) son constantes, se ignoran en consola para no saturar.
+    }
+  ).catch(err => alert("Asegúrate de dar permisos de cámara al navegador. Error: " + err));
 }
 
 function detenerEscaner() {
@@ -397,7 +407,7 @@ async function guardarPedido() {
     alert(r.mensaje);
     if(r.estado === "exito") location.reload();
   } catch(e) {
-    alert("Error de conexión con Google Sheets.");
+    alert("Error de conexión con Google Sheets al guardar el pedido.");
   } finally {
     btnGuardar.disabled = false;
     btnGuardar.innerText = "Guardar Pedido Completo";
@@ -405,9 +415,9 @@ async function guardarPedido() {
 }
 
 async function actualizarEstadoPedidoEnNube(nroPedido, nuevoEstado, selectorHTML) {
+  // Cambio optimista en la UI
   const pedido = baseDatosPedidos.find(p => p[0] === nroPedido);
   if(pedido) pedido[15] = nuevoEstado;
-
   renderizarTablaAdminInventario();
 
   if(nuevoEstado === "Entregado" || nuevoEstado === "Despachado") selectorHTML.style.backgroundColor = '#dcfce7';
@@ -416,9 +426,20 @@ async function actualizarEstadoPedidoEnNube(nroPedido, nuevoEstado, selectorHTML
 
   try {
     const payload = { accion: "actualizar_estado_pedido", numeroPedido: nroPedido, estado: nuevoEstado };
-    await fetch(URL_GOOGLE_SCRIPT, { method: 'POST', body: JSON.stringify(payload) });
+    
+    // Almacenamos la respuesta de fetch para evaluar si el servidor (Code.gs) retornó correctamente
+    const respuesta = await fetch(URL_GOOGLE_SCRIPT, { 
+      method: 'POST', 
+      body: JSON.stringify(payload)
+    });
+    
+    const data = await respuesta.json();
+    if(data.estado !== "exito") {
+      console.warn("Backend procesó, pero reporta fallo: ", data);
+    }
   } catch(e) {
-    alert("Error de red al actualizar estado en la nube. Actualiza la página.");
+    console.error("Fallo de red al enviar cambio de estado:", e);
+    alert("Advertencia: El backend rechazó la conexión. Verifica que copiaste la función de actualizarEstadoPedido en Code.gs y generaste un Nuevo Despliegue.");
   }
 }
 
