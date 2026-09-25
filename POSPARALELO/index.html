@@ -36,6 +36,21 @@
   select.estado-dropdown { padding: 4px; border-radius: 4px; border: 1px solid #cbd5e1; font-weight: bold; }
   footer { text-align: center; margin-top: auto; padding: 20px 0; color: #64748b; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; }
   footer img { height: 24px; object-fit: contain; }
+  /* Contenedor con scroll para las tablas (asegúrate de que tus tablas estén dentro de un contenedor con esta clase o similar) */
+.table-responsive, .table-container {
+  max-height: 75vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Fuerza al encabezado a quedarse fijo arriba y evita transparencias */
+table th {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important;
+  background-color: #ffffff !important; /* Cambia al color de fondo de tu diseño si es oscuro (ej: #1f2937) */
+  box-shadow: inset 0 -1px 0 #e5e7eb; /* Línea divisoria inferior opcional */
+}
 </style>
 </head>
 <body onload="inicializarApp()">
@@ -146,7 +161,7 @@
 <datalist id="lista-nombres-productos"></datalist>
 
 <script>
-const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwDw4tJDRx0f98FlkF-ZsPQ8mfaKGRXKazchfY4CZNZ5TnRguVjrJqYa6_VoZ47M5kkmQ/exec"; // NO OLVIDES REEMPLAZAR ESTO
+const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbz8tnABtLwlQdBUnOQWqS9_jVo0RutbhqRYCZ4VDdsnGIEpg5c0JH5OOlezzPMQRJuWqQ/exec"; // NO OLVIDES REEMPLAZAR ESTO
 
 let baseDatosClientes = [];
 let baseDatosInventario = [];
