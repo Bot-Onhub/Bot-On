@@ -23,15 +23,16 @@
   .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
   .btn-action { background: #0284c7; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
   .btn-del { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; }
-  .table-container { overflow-x: auto; margin-top: 10px; }
+  .table-container { overflow-x: auto; margin-top: 10px; white-space: nowrap; }
   table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
   th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
-  th { background: #f1f5f9; }
+  th { background: #f1f5f9; position: sticky; top: 0; }
   .admin-nav { display: flex; gap: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 10px; overflow-x: auto; }
   .admin-nav button { padding: 6px 12px; background: none; border: none; font-weight: bold; color: #64748b; cursor: pointer; }
   .admin-nav button.active-sub { color: var(--primary); border-bottom: 3px solid var(--primary); }
   .scanner-box { width: 100%; max-width: 400px; margin: 10px auto; border: 2px dashed #cbd5e1; padding: 10px; border-radius: 8px; text-align: center; }
   #reader { width: 100%; }
+  .stat-card { background: white; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
 </style>
 </head>
 <body onload="inicializarApp()">
@@ -85,15 +86,16 @@
     <div class="form-group"><label>Soporte de Pago</label><input type="file" id="ped_soporte" accept="image/*"></div>
   </div>
 
-  <h4>Productos del Pedido</h4>
-  <button class="btn-action" style="margin-bottom: 10px; background: #10b981;" onclick="toggleScanner()">📷 Agregar Escaneando Código</button>
+  <h4 style="margin-bottom: 5px;">Productos del Pedido</h4>
+  <p style="font-size: 0.8rem; color: #64748b; margin-top: 0;">Escribe el nombre de la prenda en la primera casilla para buscar. El escáner es opcional.</p>
+  <button class="btn-action" style="margin-bottom: 10px; background: #10b981;" onclick="toggleScanner()">📷 Escáner Opcional (EAN)</button>
   <div id="contenedor-scanner" class="scanner-box hidden">
     <div id="reader"></div>
     <button class="btn-del" style="margin-top:10px;" onclick="toggleScanner()">Cerrar Escáner</button>
   </div>
 
   <div id="contenedor-productos"></div>
-  <button class="btn-action" onclick="agregarFilaProducto()">+ Agregar Manualmente</button>
+  <button class="btn-action" onclick="agregarFilaProducto()">+ Agregar Otra Referencia</button>
 
   <div style="text-align: right; margin-top: 15px;">
     <h3>Total Pedido: $<span id="gran_total">0</span></h3>
@@ -108,27 +110,27 @@
   <button class="btn-action" style="width:100%; margin-bottom:10px;" onclick="cargarDatosBase()">Actualizar Datos Nube</button>
   
   <div class="admin-nav">
-    <button id="subtab-admin-pedidos" class="active-sub" onclick="cambiarSubPestaña('admin-pedidos')">Pedidos</button>
-    <button id="subtab-admin-prod" onclick="cambiarSubPestaña('admin-prod')">Inventario General</button>
+    <button id="subtab-admin-pedidos" class="active-sub" onclick="cambiarSubPestaña('admin-pedidos')">Pedidos Registrados</button>
+    <button id="subtab-admin-prod" onclick="cambiarSubPestaña('admin-prod')">Inventario y Disponibilidad</button>
   </div>
 
   <div id="admin-pedidos" class="admin-section"><div class="table-container" id="tabla-pedidos-box">Cargando...</div></div>
   <div id="admin-prod" class="admin-section hidden">
-    <input type="text" id="filtro-inventario" placeholder="Buscar por EAN, Producto o Talla..." style="width:100%; padding:8px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;" onkeyup="renderizarTablaAdminInventario()">
+    <input type="text" id="filtro-inventario" placeholder="Buscar específicamente por Nombre de Producto..." style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #94a3b8; border-radius:4px; font-weight: bold;" onkeyup="renderizarTablaAdminInventario()">
     <div class="table-container" id="tabla-inventario-box">Cargando...</div>
   </div>
 </section>
 
 <!-- PESTAÑA ESTADÍSTICAS -->
 <section id="sec-estadisticas" class="card hidden">
-  <h3>Cierre de Caja y Estadísticas</h3>
-  <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: end;">
-    <div class="form-group" style="margin: 0;"><label>Fecha Inicio</label><input type="date" id="stat_inicio"></div>
-    <div class="form-group" style="margin: 0;"><label>Fecha Fin</label><input type="date" id="stat_fin"></div>
-    <button class="btn-action" onclick="generarCierreCaja()">Generar Cierre</button>
+  <h3>Estadísticas y Cierre de Caja Profesional</h3>
+  <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: end; flex-wrap: wrap;">
+    <div class="form-group" style="margin: 0; flex: 1; min-width: 150px;"><label>Fecha Inicio</label><input type="date" id="stat_inicio"></div>
+    <div class="form-group" style="margin: 0; flex: 1; min-width: 150px;"><label>Fecha Fin</label><input type="date" id="stat_fin"></div>
+    <button class="btn-submit" style="margin: 0; width: auto; padding: 10px 20px;" onclick="generarCierreCaja()">Generar Reportes</button>
   </div>
-  <div class="table-container" id="tabla-estadisticas-box">
-    <p style="color: #64748b;">Selecciona un rango de fechas para ver el consolidado de ventas por medio de pago.</p>
+  <div id="contenedor-estadisticas-box">
+    <p style="color: #64748b; text-align: center; padding: 20px;">Selecciona el periodo y presiona Generar Reportes.</p>
   </div>
 </section>
 
@@ -140,14 +142,21 @@ const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwVN-S6qtPWxj
 
 let baseDatosClientes = [];
 let baseDatosInventario = [];
-let baseCatalogoProductos = []; // Almacena el contenido de la pestaña Productos
+let baseCatalogoProductos = []; 
 let mapaProductosPorNombre = {}; 
 let baseDatosPedidos = [];
 let html5QrCode = null;
 
 function inicializarApp() {
   generarNumeroPedido();
-  cargarDatosBase();
+  
+  // Establecer Comprador Genérico por defecto
+  document.getElementById('ped_cliente').value = "Comprador Generico";
+  
+  cargarDatosBase().then(() => {
+    autocompletarCliente(); // Cargar datos del genérico si existen
+  });
+
   document.getElementById('stat_inicio').valueAsDate = new Date();
   document.getElementById('stat_fin').valueAsDate = new Date();
 }
@@ -170,7 +179,7 @@ async function cargarDatosBase() {
     renderizarTablaAdminPedidos();
     renderizarTablaAdminInventario();
   } catch (e) {
-    console.error("Error cargando base:", e);
+    console.error("Error cargando base de datos:", e);
   }
 }
 
@@ -178,7 +187,6 @@ function procesarCatalogoProductos() {
   mapaProductosPorNombre = {};
   let opcionesNombresHTML = "";
 
-  // Procesa la pestaña Productos: Col A=Nombre, Col B=Talla, Col C=EAN, Col D=Precio
   baseCatalogoProductos.forEach(p => {
     let nombre = String(p[0] || "").trim();
     let talla = String(p[1] || "").trim();
@@ -206,13 +214,20 @@ function renderizarClientesDataList() {
 
 function autocompletarCliente() {
   let nombre = document.getElementById('ped_cliente').value;
-  let c = baseDatosClientes.find(cli => cli[0] === nombre);
+  let c = baseDatosClientes.find(cli => String(cli[0]).toLowerCase() === String(nombre).toLowerCase());
   if (c) {
     document.getElementById('ped_identificacion').value = c[1] || "";
     document.getElementById('ped_direccion').value = c[2] || "";
     document.getElementById('ped_telefono').value = c[3] || "";
     document.getElementById('ped_ciudad').value = c[4] || "";
     document.getElementById('ped_correo').value = c[5] || "";
+  } else {
+    // Limpiar campos si es un cliente nuevo digitado manualmente
+    document.getElementById('ped_identificacion').value = "";
+    document.getElementById('ped_direccion').value = "";
+    document.getElementById('ped_telefono').value = "";
+    document.getElementById('ped_ciudad').value = "";
+    document.getElementById('ped_correo').value = "";
   }
 }
 
@@ -220,12 +235,12 @@ function agregarFilaProducto(datosPrellenados = null) {
   const div = document.createElement('div');
   div.className = 'product-row';
   div.innerHTML = `
-    <div><input type="text" class="row-prod" list="lista-nombres-productos" placeholder="Buscar Prenda..." onchange="alSeleccionarProducto(this)"></div>
+    <div><input type="text" class="row-prod" list="lista-nombres-productos" placeholder="Buscar por Nombre..." onchange="alSeleccionarProducto(this)"></div>
     <div><select class="row-talla" onchange="alSeleccionarTalla(this)"><option value="">Talla</option></select></div>
-    <div><input type="text" class="row-ean" placeholder="EAN 13" readonly></div>
+    <div><input type="text" class="row-ean" placeholder="EAN (Auto)" readonly style="background:#e2e8f0; color:#64748b;"></div>
     <div><input type="number" class="row-cant" value="1" min="1" onchange="calcularTotales()"></div>
     <div><input type="number" class="row-vuni" placeholder="Precio Editable" onchange="calcularTotales()"></div>
-    <div><input type="number" class="row-subtotal" value="0" readonly></div>
+    <div><input type="number" class="row-subtotal" value="0" readonly style="background:#e2e8f0; font-weight:bold;"></div>
     <button class="btn-del" onclick="eliminarFila(this)">X</button>
   `;
   document.getElementById('contenedor-productos').appendChild(div);
@@ -268,7 +283,7 @@ function alSeleccionarTalla(selectTalla) {
     const item = mapaProductosPorNombre[nombreProd].find(x => x.talla === talla);
     if (item) {
       row.querySelector('.row-ean').value = item.ean;
-      row.querySelector('.row-vuni').value = item.precio; // Carga automática del precio desde pestaña Productos
+      row.querySelector('.row-vuni').value = item.precio; 
     }
   }
   calcularTotales();
@@ -291,7 +306,6 @@ function calcularTotales() {
   document.getElementById('gran_total').innerText = granTotal.toLocaleString('es-CO');
 }
 
-// ================= ESCÁNER DE CÓDIGO DE BARRAS =================
 function toggleScanner() {
   const box = document.getElementById('contenedor-scanner');
   if (box.classList.contains('hidden')) {
@@ -307,12 +321,10 @@ function iniciarEscaner() {
   if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
   html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 150 } }, 
     (decodedText) => {
-      // Busca el código EAN (Índice 2) en el catálogo devuelto por la pestaña Productos
       const prodEncontrado = baseCatalogoProductos.find(p => String(p[2]).trim() === String(decodedText).trim());
       if (prodEncontrado) {
         agregarFilaProducto({ nombre: prodEncontrado[0], talla: prodEncontrado[1] });
         toggleScanner();
-        alert("¡Producto " + prodEncontrado[0] + " agregado!");
       } else {
         alert("EAN " + decodedText + " no encontrado en el maestro de Productos.");
       }
@@ -344,7 +356,7 @@ async function guardarPedido() {
   if (productosArray.length === 0) return alert("Agrega al menos una prenda.");
 
   btnGuardar.disabled = true;
-  btnGuardar.innerText = "Esperando, guardando pedido en la base de datos...";
+  btnGuardar.innerText = "Procesando de forma segura para evitar duplicados...";
 
   let fileInput = document.getElementById('ped_soporte');
   let base64Soporte = "", nombreSoporte = "", mimeTypeSoporte = "";
@@ -375,36 +387,64 @@ async function guardarPedido() {
     alert(r.mensaje);
     if(r.estado === "exito") location.reload();
   } catch(e) {
-    alert("Error al guardar el pedido.");
+    alert("Error de conexión. Verifica la base de datos.");
   } finally {
     btnGuardar.disabled = false;
     btnGuardar.innerText = "Guardar Pedido Completo";
   }
 }
 
+// Representación de las 19 columnas de la Pestaña Pedidos
 function renderizarTablaAdminPedidos() {
-  let html = `<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Forma Pago</th><th>Producto</th><th>Cant</th><th>Total</th><th>Estado</th></tr>`;
+  let html = `<table><tr>
+    <th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>ID Cliente</th><th>Forma Pago</th>
+    <th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th>
+    <th>Producto</th><th>Talla</th><th>EAN</th><th>Cant</th><th>V. Unit</th><th>Total</th>
+    <th>Estado</th><th>Vendedor</th><th>Tipo Pedido</th><th>Soporte</th>
+    </tr>`;
   baseDatosPedidos.forEach(p => {
-    html += `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[4]}</td><td>${p[9]}</td><td>${p[12]}</td><td>$${Number(p[14]).toLocaleString('es-CO')}</td><td>${p[15]}</td></tr>`;
+    let btnSoporte = p[18] ? `<a href="${p[18]}" target="_blank" style="color:var(--primary); font-weight:bold;">Ver</a>` : "N/A";
+    html += `<tr>
+      <td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td>${p[4]}</td>
+      <td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td>
+      <td><strong>${p[9]}</strong></td><td>${p[10]}</td><td>${p[11]}</td>
+      <td style="text-align:center; font-weight:bold;">${p[12]}</td>
+      <td>$${Number(p[13]).toLocaleString('es-CO')}</td>
+      <td style="color:#047857; font-weight:bold;">$${Number(p[14]).toLocaleString('es-CO')}</td>
+      <td>${p[15]}</td><td>${p[16]}</td><td>${p[17]}</td>
+      <td>${btnSoporte}</td>
+    </tr>`;
   });
   document.getElementById('tabla-pedidos-box').innerHTML = html + "</table>";
 }
 
+// Búsqueda en Inventario por Nombre (Columna 2 = p[2])
 function renderizarTablaAdminInventario() {
   const textoBusqueda = document.getElementById('filtro-inventario').value.toLowerCase();
   
-  let html = `<table><tr><th>EAN 13</th><th>Producto</th><th>Talla</th><th>Saldo Actual</th><th>En Pedido</th><th>Disponible</th></tr>`;
+  let html = `<table><tr>
+    <th>EAN 13</th><th>Producto</th><th>Talla</th>
+    <th>Inv. Inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th>
+    <th style="background:#fef08a;">Saldo Total</th>
+    <th style="background:#fed7aa;">Pendiente Despacho</th>
+    <th style="background:#bbf7d0;">DISPONIBLE REAL</th>
+    </tr>`;
   
   baseDatosInventario.forEach(i => {
-    const cadenaBusqueda = `${i[1]} ${i[2]} ${i[3]}`.toLowerCase();
-    if (cadenaBusqueda.includes(textoBusqueda)) {
-      html += `<tr><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td><strong>${i[8]}</strong></td><td>${i[9]}</td><td><strong style="color:var(--primary);">${i[10]}</strong></td></tr>`;
+    const nombreProducto = String(i[2]).toLowerCase();
+    if (nombreProducto.includes(textoBusqueda)) {
+      html += `<tr>
+        <td>${i[1]}</td><td><strong>${i[2]}</strong></td><td>${i[3]}</td>
+        <td>${i[4]}</td><td>${i[5]}</td><td>${i[6]}</td><td>${i[7]}</td>
+        <td style="background:#fef9c3; text-align:center;"><strong>${i[8]}</strong></td>
+        <td style="background:#ffedd5; text-align:center;">${i[9]}</td>
+        <td style="background:#dcfce7; text-align:center; color:#166534; font-size:1.1em;"><strong>${i[10]}</strong></td>
+      </tr>`;
     }
   });
   document.getElementById('tabla-inventario-box').innerHTML = html + "</table>";
 }
 
-// ================= CIERRE DE CAJA =================
 function generarCierreCaja() {
   const strInicio = document.getElementById('stat_inicio').value;
   const strFin = document.getElementById('stat_fin').value;
@@ -413,7 +453,12 @@ function generarCierreCaja() {
   const dateInicio = new Date(strInicio + "T00:00:00");
   const dateFin = new Date(strFin + "T23:59:59");
 
-  let totalesPorPago = { "efectivo": 0, "Mercado Pago": 0, "Addi": 0, "Paypal": 0, "Transferencia a Bancolombia": 0, "Transferencia a Davivienda": 0, "Transferencia a Nequi": 0, "Otro": 0 };
+  // Definición estricta de todos los métodos exigidos
+  const metodosPagos = ["efectivo", "Mercado Pago", "Addi", "Paypal", "Transferencia a Bancolombia", "Transferencia a Davivienda", "Transferencia a Nequi"];
+  let totalesPorPago = {};
+  metodosPagos.forEach(m => totalesPorPago[m] = 0);
+  
+  let consolidadoProductos = {};
   let granTotalCierre = 0;
 
   baseDatosPedidos.forEach(p => {
@@ -422,37 +467,74 @@ function generarCierreCaja() {
       const pDate = new Date(`${partesFecha[2]}-${partesFecha[1].padStart(2,'0')}-${partesFecha[0].padStart(2,'0')}T12:00:00`);
       
       if (pDate >= dateInicio && pDate <= dateFin) {
-        const metodo = String(p[4]).trim();
-        const valor = Number(p[14]) || 0;
+        // 1. Acumular Medios de Pago
+        const metodoStr = String(p[4]).trim();
+        const valorFila = Number(p[14]) || 0;
 
-        if (totalesPorPago[metodo] !== undefined) {
-          totalesPorPago[metodo] += valor;
+        let metodoAsignado = metodosPagos.find(m => m.toLowerCase() === metodoStr.toLowerCase());
+        if (metodoAsignado) {
+          totalesPorPago[metodoAsignado] += valorFila;
         } else {
-          totalesPorPago["Otro"] += valor;
+          if (totalesPorPago["Otros (No especificado)"] === undefined) totalesPorPago["Otros (No especificado)"] = 0;
+          totalesPorPago["Otros (No especificado)"] += valorFila;
         }
-        granTotalCierre += valor;
+        granTotalCierre += valorFila;
+
+        // 2. Consolidar por Referencia y Talla
+        const nombreRef = String(p[9]).trim();
+        const tallaRef = String(p[10]).trim() || "Única";
+        const cantRef = Number(p[12]) || 0;
+        const llave = `${nombreRef} - Talla ${tallaRef}`;
+
+        if(!consolidadoProductos[llave]) consolidadoProductos[llave] = { cantidad: 0, ingresos: 0 };
+        consolidadoProductos[llave].cantidad += cantRef;
+        consolidadoProductos[llave].ingresos += valorFila;
       }
     }
   });
 
-  let html = `
-    <div style="background: #f1f5f9; padding: 15px; border-radius: 8px;">
-      <h4 style="margin-top:0;">Resumen del periodo</h4>
-      <table style="width:100%; border:none; margin-bottom: 15px;">`;
+  // Renderizar la Vista Profesional
+  let html = `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">`;
+  
+  // Tabla Medios de Pago
+  html += `<div class="stat-card">
+      <h4 style="margin-top:0; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">Flujo por Medio de Pago</h4>
+      <table style="width:100%; border:none; margin-bottom: 10px;">`;
       
   for (const [metodo, total] of Object.entries(totalesPorPago)) {
-    if (total > 0) {
-      html += `<tr><td style="border:none; border-bottom:1px solid #cbd5e1; padding: 8px 0;"><strong>${metodo}</strong></td>
-                   <td style="border:none; border-bottom:1px solid #cbd5e1; text-align:right; color: #0f172a;">$${total.toLocaleString('es-CO')}</td></tr>`;
-    }
+    // Si el valor es 0, lo muestra en gris claro
+    let colorTexto = total === 0 ? "#94a3b8" : "#0f172a";
+    html += `<tr><td style="border:none; border-bottom:1px solid #cbd5e1; padding: 6px 0;">${metodo}</td>
+                 <td style="border:none; border-bottom:1px solid #cbd5e1; text-align:right; color: ${colorTexto}; font-weight:bold;">$${total.toLocaleString('es-CO')}</td></tr>`;
   }
 
   html += `</table>
-      <h2 style="text-align: right; color: var(--primary); margin:0;">Total Generado: $${granTotalCierre.toLocaleString('es-CO')}</h2>
-    </div>
-  `;
+      <h3 style="text-align: right; color: var(--primary); margin:0;">Total Periodo: $${granTotalCierre.toLocaleString('es-CO')}</h3>
+    </div>`;
 
-  document.getElementById('tabla-estadisticas-box').innerHTML = html;
+  // Tabla Consolidado por Producto
+  html += `<div class="stat-card">
+      <h4 style="margin-top:0; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">Ventas por Referencia y Talla</h4>
+      <div style="max-height: 400px; overflow-y: auto;">
+        <table style="width:100%; border:none;">
+          <tr><th style="border:none; border-bottom:2px solid #cbd5e1;">Producto</th>
+              <th style="border:none; border-bottom:2px solid #cbd5e1; text-align:center;">Uds.</th>
+              <th style="border:none; border-bottom:2px solid #cbd5e1; text-align:right;">Ingreso</th></tr>`;
+
+  let refs = Object.keys(consolidadoProductos).sort();
+  if (refs.length === 0) {
+    html += `<tr><td colspan="3" style="text-align:center; padding:15px; color:#64748b; border:none;">No se registran ventas en este periodo.</td></tr>`;
+  } else {
+    refs.forEach(llave => {
+      let data = consolidadoProductos[llave];
+      html += `<tr><td style="border:none; border-bottom:1px solid #e2e8f0; padding: 6px 0; font-size:0.9em;">${llave}</td>
+                   <td style="border:none; border-bottom:1px solid #e2e8f0; text-align:center; font-weight:bold;">${data.cantidad}</td>
+                   <td style="border:none; border-bottom:1px solid #e2e8f0; text-align:right; color: #047857;">$${data.ingresos.toLocaleString('es-CO')}</td></tr>`;
+    });
+  }
+
+  html += `</table></div></div></div>`;
+  document.getElementById('contenedor-estadisticas-box').innerHTML = html;
 }
 
 function cambiarPestaña(tab) {
