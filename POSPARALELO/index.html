@@ -6,13 +6,7 @@
 <title>Paralelo - Sistema de Gestión</title>
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
-  :root {
-    --primary: #5b21b6;
-    --primary-dark: #4c1d95;
-    --bg-color: #f8fafc;
-    --card-bg: #ffffff;
-    --text-main: #1e293b;
-  }
+  :root { --primary: #5b21b6; --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; }
   body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); color: var(--text-main); margin: 0; padding: 15px; }
   header { text-align: center; margin-bottom: 20px; }
   header img { height: 60px; object-fit: contain; }
@@ -26,6 +20,7 @@
   .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
   .product-row { display: grid; grid-template-columns: 2fr 1fr 1.2fr 0.8fr 1fr 1fr auto; gap: 6px; align-items: center; background: #f1f5f9; padding: 8px; border-radius: 6px; margin-bottom: 8px; }
   .btn-submit { background: var(--primary); color: white; width: 100%; border: none; padding: 12px; border-radius: 6px; font-size: 1rem; cursor: pointer; font-weight: bold; margin-top: 10px; }
+  .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
   .btn-action { background: #0284c7; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
   .btn-del { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; }
   .table-container { overflow-x: auto; margin-top: 10px; }
@@ -35,20 +30,20 @@
   .admin-nav { display: flex; gap: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 10px; overflow-x: auto; }
   .admin-nav button { padding: 6px 12px; background: none; border: none; font-weight: bold; color: #64748b; cursor: pointer; }
   .admin-nav button.active-sub { color: var(--primary); border-bottom: 3px solid var(--primary); }
-  .img-preview { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1; }
+  .scanner-box { width: 100%; max-width: 400px; margin: 10px auto; border: 2px dashed #cbd5e1; padding: 10px; border-radius: 8px; text-align: center; }
+  #reader { width: 100%; }
 </style>
 </head>
 <body onload="inicializarApp()">
 
 <header>
   <img src="https://static.wixstatic.com/media/d0ce54_32d30a8159fd44d4a26c62563d7bfc38~mv2.jpg" alt="Paralelo Logo">
-  <h2 style="margin:5px 0 0 0; color: var(--primary);">PARALELO</h2>
 </header>
 
 <nav>
   <button id="btn-tab-pedidos" class="active" onclick="cambiarPestaña('pedidos')">Nuevo Pedido</button>
-  <button id="btn-tab-inventario" onclick="cambiarPestaña('inventario')">Escanear EAN</button>
   <button id="btn-tab-admin" onclick="cambiarPestaña('admin')">Panel Admin</button>
+  <button id="btn-tab-estadisticas" onclick="cambiarPestaña('estadisticas')">Estadísticas</button>
 </nav>
 
 <!-- PESTAÑA NUEVO PEDIDO -->
@@ -58,7 +53,17 @@
     <div class="form-group"><label>N° Pedido</label><input type="text" id="ped_nro" readonly></div>
     <div class="form-group"><label>Nombre Cliente</label><input type="text" id="ped_cliente" list="lista-clientes" onchange="autocompletarCliente()"></div>
     <div class="form-group"><label>Identificación</label><input type="text" id="ped_identificacion"></div>
-    <div class="form-group"><label>Sucursal</label><input type="text" id="ped_sucursal" value="Principal"></div>
+    <div class="form-group"><label>Forma de Pago</label>
+      <select id="ped_formapago">
+        <option value="efectivo">Efectivo</option>
+        <option value="Mercado Pago">Mercado Pago</option>
+        <option value="Addi">Addi</option>
+        <option value="Paypal">Paypal</option>
+        <option value="Transferencia a Bancolombia">Transferencia a Bancolombia</option>
+        <option value="Transferencia a Davivienda">Transferencia a Davivienda</option>
+        <option value="Transferencia a Nequi">Transferencia a Nequi</option>
+      </select>
+    </div>
     <div class="form-group"><label>Dirección</label><input type="text" id="ped_direccion"></div>
     <div class="form-group"><label>Teléfono</label><input type="text" id="ped_telefono"></div>
     <div class="form-group"><label>Ciudad</label><input type="text" id="ped_ciudad"></div>
@@ -77,30 +82,29 @@
         <option value="Aprobado">Aprobado</option>
       </select>
     </div>
-    <div class="form-group"><label>Soporte de Pago (Imagen)</label><input type="file" id="ped_soporte" accept="image/*"></div>
+    <div class="form-group"><label>Soporte de Pago</label><input type="file" id="ped_soporte" accept="image/*"></div>
   </div>
 
   <h4>Productos del Pedido</h4>
+  <button class="btn-action" style="margin-bottom: 10px; background: #10b981;" onclick="toggleScanner()">📷 Agregar Escaneando Código</button>
+  <div id="contenedor-scanner" class="scanner-box hidden">
+    <div id="reader"></div>
+    <button class="btn-del" style="margin-top:10px;" onclick="toggleScanner()">Cerrar Escáner</button>
+  </div>
+
   <div id="contenedor-productos"></div>
-  <button class="btn-action" onclick="agregarFilaProducto()">+ Agregar Prenda</button>
+  <button class="btn-action" onclick="agregarFilaProducto()">+ Agregar Manualmente</button>
 
   <div style="text-align: right; margin-top: 15px;">
     <h3>Total Pedido: $<span id="gran_total">0</span></h3>
   </div>
 
-  <button class="btn-submit" onclick="guardarPedido()">Guardar Pedido Completo</button>
-</section>
-
-<!-- PESTAÑA ESCÁNER CÁMARA -->
-<section id="sec-inventario" class="card hidden">
-  <h3>Lector de Código EAN 13</h3>
-  <div id="reader" style="width: 100%; max-width: 450px; margin: 0 auto;"></div>
-  <div id="scan_feedback" style="text-align:center; font-weight:bold; margin-top:10px; color:var(--primary);"></div>
+  <button id="btn-guardar-pedido" class="btn-submit" onclick="guardarPedido()">Guardar Pedido Completo</button>
 </section>
 
 <!-- PESTAÑA ADMIN -->
 <section id="sec-admin" class="card hidden">
-  <h3>Panel Administrativo - Paralelo</h3>
+  <h3>Panel Administrativo</h3>
   <button class="btn-action" style="width:100%; margin-bottom:10px;" onclick="cargarDatosBase()">Actualizar Datos Nube</button>
   
   <div class="admin-nav">
@@ -109,23 +113,43 @@
   </div>
 
   <div id="admin-pedidos" class="admin-section"><div class="table-container" id="tabla-pedidos-box">Cargando...</div></div>
-  <div id="admin-prod" class="admin-section hidden"><div class="table-container" id="tabla-inventario-box">Cargando...</div></div>
+  <div id="admin-prod" class="admin-section hidden">
+    <input type="text" id="filtro-inventario" placeholder="Buscar por EAN, Producto o Talla..." style="width:100%; padding:8px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;" onkeyup="renderizarTablaAdminInventario()">
+    <div class="table-container" id="tabla-inventario-box">Cargando...</div>
+  </div>
+</section>
+
+<!-- PESTAÑA ESTADÍSTICAS -->
+<section id="sec-estadisticas" class="card hidden">
+  <h3>Cierre de Caja y Estadísticas</h3>
+  <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: end;">
+    <div class="form-group" style="margin: 0;"><label>Fecha Inicio</label><input type="date" id="stat_inicio"></div>
+    <div class="form-group" style="margin: 0;"><label>Fecha Fin</label><input type="date" id="stat_fin"></div>
+    <button class="btn-action" onclick="generarCierreCaja()">Generar Cierre</button>
+  </div>
+  <div class="table-container" id="tabla-estadisticas-box">
+    <p style="color: #64748b;">Selecciona un rango de fechas para ver el consolidado de ventas por medio de pago.</p>
+  </div>
 </section>
 
 <datalist id="lista-clientes"></datalist>
 <datalist id="lista-nombres-productos"></datalist>
 
 <script>
-const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyuoMruomkZPsed0UbILzFq4MN0ObBzvzEE-bw-2RDJUeaSOb1vnUVlPnMsiqfEROwi/exec";
+const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwVN-S6qtPWxjW3oPEbroH1ZZnhhxSeVPj2l3wK9rCkpAqmjsAP_txj_TwutWVikHFsAQ/exec";
 
 let baseDatosClientes = [];
-let baseDatosProductos = []; // Lista cruda
-let mapaProductosPorNombre = {}; // { "Top Serene": [ {talla: "S", ean: "123", precio: 50000}, ... ] }
+let baseDatosInventario = [];
+let baseCatalogoProductos = []; // Almacena el contenido de la pestaña Productos
+let mapaProductosPorNombre = {}; 
 let baseDatosPedidos = [];
+let html5QrCode = null;
 
 function inicializarApp() {
   generarNumeroPedido();
   cargarDatosBase();
+  document.getElementById('stat_inicio').valueAsDate = new Date();
+  document.getElementById('stat_fin').valueAsDate = new Date();
 }
 
 function generarNumeroPedido() {
@@ -136,9 +160,9 @@ async function cargarDatosBase() {
   try {
     const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_datos_iniciales&_ts=" + new Date().getTime());
     const data = await res.json();
-    
     baseDatosClientes = data.clientes || [];
-    baseDatosProductos = data.inventario || [];
+    baseDatosInventario = data.inventario || [];
+    baseCatalogoProductos = data.productos || [];
     baseDatosPedidos = data.pedidos || [];
 
     procesarCatalogoProductos();
@@ -146,20 +170,20 @@ async function cargarDatosBase() {
     renderizarTablaAdminPedidos();
     renderizarTablaAdminInventario();
   } catch (e) {
-    console.error("Error cargando base de datos:", e);
+    console.error("Error cargando base:", e);
   }
 }
 
-// Organiza más de 3.000 productos en un mapa estructurado por Nombre Prenda
 function procesarCatalogoProductos() {
   mapaProductosPorNombre = {};
   let opcionesNombresHTML = "";
 
-  baseDatosProductos.forEach(p => {
-    let ean = String(p[1] || "").trim();
-    let nombre = String(p[2] || "").trim();
-    let talla = String(p[3] || "").trim();
-    let precio = Number(p[4]) || 0; // O el campo asignado a precio unitario
+  // Procesa la pestaña Productos: Col A=Nombre, Col B=Talla, Col C=EAN, Col D=Precio
+  baseCatalogoProductos.forEach(p => {
+    let nombre = String(p[0] || "").trim();
+    let talla = String(p[1] || "").trim();
+    let ean = String(p[2] || "").trim();
+    let precio = Number(p[3]) || 0;
 
     if (nombre) {
       if (!mapaProductosPorNombre[nombre]) {
@@ -171,9 +195,7 @@ function procesarCatalogoProductos() {
   });
 
   document.getElementById('lista-nombres-productos').innerHTML = opcionesNombresHTML;
-  if (document.getElementById('contenedor-productos').children.length === 0) {
-    agregarFilaProducto();
-  }
+  if (document.getElementById('contenedor-productos').children.length === 0) agregarFilaProducto();
 }
 
 function renderizarClientesDataList() {
@@ -194,36 +216,27 @@ function autocompletarCliente() {
   }
 }
 
-function agregarFilaProducto() {
+function agregarFilaProducto(datosPrellenados = null) {
   const div = document.createElement('div');
   div.className = 'product-row';
   div.innerHTML = `
-    <div>
-      <input type="text" class="row-prod" list="lista-nombres-productos" placeholder="Buscar Prenda..." onchange="alSeleccionarProducto(this)">
-    </div>
-    <div>
-      <select class="row-talla" onchange="alSeleccionarTalla(this)">
-        <option value="">Talla</option>
-      </select>
-    </div>
-    <div>
-      <input type="text" class="row-ean" placeholder="Código EAN 13" readonly>
-    </div>
-    <div>
-      <input type="number" class="row-cant" value="1" min="1" onchange="calcularTotales()">
-    </div>
-    <div>
-      <input type="number" class="row-vuni" placeholder="Precio" onchange="calcularTotales()">
-    </div>
-    <div>
-      <input type="number" class="row-subtotal" value="0" readonly>
-    </div>
+    <div><input type="text" class="row-prod" list="lista-nombres-productos" placeholder="Buscar Prenda..." onchange="alSeleccionarProducto(this)"></div>
+    <div><select class="row-talla" onchange="alSeleccionarTalla(this)"><option value="">Talla</option></select></div>
+    <div><input type="text" class="row-ean" placeholder="EAN 13" readonly></div>
+    <div><input type="number" class="row-cant" value="1" min="1" onchange="calcularTotales()"></div>
+    <div><input type="number" class="row-vuni" placeholder="Precio Editable" onchange="calcularTotales()"></div>
+    <div><input type="number" class="row-subtotal" value="0" readonly></div>
     <button class="btn-del" onclick="eliminarFila(this)">X</button>
   `;
   document.getElementById('contenedor-productos').appendChild(div);
+
+  if (datosPrellenados) {
+    div.querySelector('.row-prod').value = datosPrellenados.nombre;
+    alSeleccionarProducto(div.querySelector('.row-prod'), datosPrellenados.talla);
+  }
 }
 
-function alSeleccionarProducto(inputNom) {
+function alSeleccionarProducto(inputNom, forzarTalla = null) {
   const row = inputNom.closest('.product-row');
   const nombreProd = inputNom.value;
   const selectTalla = row.querySelector('.row-talla');
@@ -235,7 +248,11 @@ function alSeleccionarProducto(inputNom) {
     mapaProductosPorNombre[nombreProd].forEach(item => {
       selectTalla.innerHTML += `<option value="${item.talla}">${item.talla}</option>`;
     });
-    if (mapaProductosPorNombre[nombreProd].length === 1) {
+    
+    if (forzarTalla) {
+      selectTalla.value = forzarTalla;
+      alSeleccionarTalla(selectTalla);
+    } else if (mapaProductosPorNombre[nombreProd].length === 1) {
       selectTalla.selectedIndex = 1;
       alSeleccionarTalla(selectTalla);
     }
@@ -251,7 +268,7 @@ function alSeleccionarTalla(selectTalla) {
     const item = mapaProductosPorNombre[nombreProd].find(x => x.talla === talla);
     if (item) {
       row.querySelector('.row-ean').value = item.ean;
-      if (item.precio > 0) row.querySelector('.row-vuni').value = item.precio;
+      row.querySelector('.row-vuni').value = item.precio; // Carga automática del precio desde pestaña Productos
     }
   }
   calcularTotales();
@@ -274,7 +291,42 @@ function calcularTotales() {
   document.getElementById('gran_total').innerText = granTotal.toLocaleString('es-CO');
 }
 
+// ================= ESCÁNER DE CÓDIGO DE BARRAS =================
+function toggleScanner() {
+  const box = document.getElementById('contenedor-scanner');
+  if (box.classList.contains('hidden')) {
+    box.classList.remove('hidden');
+    iniciarEscaner();
+  } else {
+    box.classList.add('hidden');
+    detenerEscaner();
+  }
+}
+
+function iniciarEscaner() {
+  if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+  html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 150 } }, 
+    (decodedText) => {
+      // Busca el código EAN (Índice 2) en el catálogo devuelto por la pestaña Productos
+      const prodEncontrado = baseCatalogoProductos.find(p => String(p[2]).trim() === String(decodedText).trim());
+      if (prodEncontrado) {
+        agregarFilaProducto({ nombre: prodEncontrado[0], talla: prodEncontrado[1] });
+        toggleScanner();
+        alert("¡Producto " + prodEncontrado[0] + " agregado!");
+      } else {
+        alert("EAN " + decodedText + " no encontrado en el maestro de Productos.");
+      }
+    },
+    (errorMessage) => {}
+  ).catch(err => alert("Error iniciando cámara: " + err));
+}
+
+function detenerEscaner() {
+  if (html5QrCode) html5QrCode.stop().catch(() => {});
+}
+
 async function guardarPedido() {
+  const btnGuardar = document.getElementById('btn-guardar-pedido');
   const filas = document.querySelectorAll('.product-row');
   let productosArray = [];
 
@@ -282,132 +334,129 @@ async function guardarPedido() {
     let prod = row.querySelector('.row-prod').value;
     if (prod) {
       productosArray.push({
-        producto: prod,
-        talla: row.querySelector('.row-talla').value,
-        codigoEan: row.querySelector('.row-ean').value,
-        cantidad: row.querySelector('.row-cant').value,
-        valorUnitario: row.querySelector('.row-vuni').value,
-        total: row.querySelector('.row-subtotal').value
+        producto: prod, talla: row.querySelector('.row-talla').value,
+        codigoEan: row.querySelector('.row-ean').value, cantidad: row.querySelector('.row-cant').value,
+        valorUnitario: row.querySelector('.row-vuni').value, total: row.querySelector('.row-subtotal').value
       });
     }
   });
 
-  if (productosArray.length === 0) {
-    alert("Debe agregar al menos una prenda al pedido.");
-    return;
-  }
+  if (productosArray.length === 0) return alert("Agrega al menos una prenda.");
 
-  // Lectura e ingestión del Soporte de Pago en formato Base64
+  btnGuardar.disabled = true;
+  btnGuardar.innerText = "Esperando, guardando pedido en la base de datos...";
+
   let fileInput = document.getElementById('ped_soporte');
-  let base64Soporte = "";
-  let nombreSoporte = "";
-  let mimeTypeSoporte = "";
-
+  let base64Soporte = "", nombreSoporte = "", mimeTypeSoporte = "";
   if (fileInput.files.length > 0) {
     let file = fileInput.files[0];
-    nombreSoporte = file.name;
-    mimeTypeSoporte = file.type;
-    base64Soporte = await convertirFileABase64(file);
+    nombreSoporte = file.name; mimeTypeSoporte = file.type;
+    base64Soporte = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+    });
   }
 
   const payload = {
-    accion: "guardar_pedido",
-    numeroPedido: document.getElementById('ped_nro').value,
-    nombreCliente: document.getElementById('ped_cliente').value,
-    identificacion: document.getElementById('ped_identificacion').value,
-    sucursal: document.getElementById('ped_sucursal').value,
-    direccion: document.getElementById('ped_direccion').value,
-    telefono: document.getElementById('ped_telefono').value,
-    ciudad: document.getElementById('ped_ciudad').value,
-    correo: document.getElementById('ped_correo').value,
-    vendedor: document.getElementById('ped_vendedor').value,
-    tipoPedido: document.getElementById('ped_tipopedido').value,
-    estado: document.getElementById('ped_estado').value,
-    soportePagoBase64: base64Soporte,
-    soportePagoNombre: nombreSoporte,
-    soportePagoMimeType: mimeTypeSoporte,
-    productosArray: productosArray
+    accion: "guardar_pedido", numeroPedido: document.getElementById('ped_nro').value,
+    nombreCliente: document.getElementById('ped_cliente').value, identificacion: document.getElementById('ped_identificacion').value,
+    formaPago: document.getElementById('ped_formapago').value,
+    direccion: document.getElementById('ped_direccion').value, telefono: document.getElementById('ped_telefono').value,
+    ciudad: document.getElementById('ped_ciudad').value, correo: document.getElementById('ped_correo').value,
+    vendedor: document.getElementById('ped_vendedor').value, tipoPedido: document.getElementById('ped_tipopedido').value,
+    estado: document.getElementById('ped_estado').value, soportePagoBase64: base64Soporte,
+    soportePagoNombre: nombreSoporte, soportePagoMimeType: mimeTypeSoporte, productosArray: productosArray
   };
 
   try {
     const res = await fetch(URL_GOOGLE_SCRIPT, { method: 'POST', body: JSON.stringify(payload) });
     const r = await res.json();
     alert(r.mensaje);
-    if(r.estado === "exito") {
-      location.reload();
-    }
+    if(r.estado === "exito") location.reload();
   } catch(e) {
     alert("Error al guardar el pedido.");
+  } finally {
+    btnGuardar.disabled = false;
+    btnGuardar.innerText = "Guardar Pedido Completo";
   }
 }
 
-function convertirFileABase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-  });
-}
-
 function renderizarTablaAdminPedidos() {
-  let html = `<table><tr>
-    <th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Producto</th><th>Talla</th><th>Cant</th><th>Total</th><th>Estado</th><th>Soporte Pago</th><th>Acción</th>
-  </tr>`;
-
+  let html = `<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Forma Pago</th><th>Producto</th><th>Cant</th><th>Total</th><th>Estado</th></tr>`;
   baseDatosPedidos.forEach(p => {
-    let numPed = p[0];
-    let cliente = p[2];
-    let prod = p[9];
-    let talla = p[10];
-    let cant = p[12];
-    let total = p[14];
-    let estado = p[15];
-    let urlSoporte = p[18];
-
-    let soporteHTML = urlSoporte ? `<a href="${urlSoporte}" target="_blank"><img src="${urlSoporte}" class="img-preview" alt="Ver Soporte"></a>` : 'Sin Soporte';
-    let btnDespachar = (estado.toLowerCase() !== 'despachado') ? `<button class="btn-action" onclick="despacharPedido('${numPed}')">Despachar</button>` : 'Despachado';
-
-    html += `<tr>
-      <td>${numPed}</td><td>${p[1]}</td><td>${cliente}</td><td>${prod}</td><td>${talla}</td><td>${cant}</td><td>$${Number(total).toLocaleString('es-CO')}</td><td>${estado}</td><td>${soporteHTML}</td><td>${btnDespachar}</td>
-    </tr>`;
+    html += `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[4]}</td><td>${p[9]}</td><td>${p[12]}</td><td>$${Number(p[14]).toLocaleString('es-CO')}</td><td>${p[15]}</td></tr>`;
   });
-
   document.getElementById('tabla-pedidos-box').innerHTML = html + "</table>";
 }
 
 function renderizarTablaAdminInventario() {
-  let html = `<table><tr>
-    <th>EAN 13</th><th>Producto</th><th>Talla</th><th>Inv Inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th><th>En Pedido</th><th>Disponible</th>
-  </tr>`;
-
-  baseDatosProductos.forEach(i => {
-    html += `<tr>
-      <td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td>${i[6]}</td><td><strong>${i[8]}</strong></td><td>${i[9]}</td><td><strong>${i[10]}</strong></td>
-    </tr>`;
+  const textoBusqueda = document.getElementById('filtro-inventario').value.toLowerCase();
+  
+  let html = `<table><tr><th>EAN 13</th><th>Producto</th><th>Talla</th><th>Saldo Actual</th><th>En Pedido</th><th>Disponible</th></tr>`;
+  
+  baseDatosInventario.forEach(i => {
+    const cadenaBusqueda = `${i[1]} ${i[2]} ${i[3]}`.toLowerCase();
+    if (cadenaBusqueda.includes(textoBusqueda)) {
+      html += `<tr><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td><strong>${i[8]}</strong></td><td>${i[9]}</td><td><strong style="color:var(--primary);">${i[10]}</strong></td></tr>`;
+    }
   });
-
   document.getElementById('tabla-inventario-box').innerHTML = html + "</table>";
 }
 
-async function despacharPedido(numPedido) {
-  if (!confirm(`¿Confirmas el despacho del pedido #${numPedido}? Esto descontará inventario y generará la Remisión PDF.`)) return;
+// ================= CIERRE DE CAJA =================
+function generarCierreCaja() {
+  const strInicio = document.getElementById('stat_inicio').value;
+  const strFin = document.getElementById('stat_fin').value;
+  if (!strInicio || !strFin) return alert("Selecciona fechas válidas.");
 
-  try {
-    const res = await fetch(URL_GOOGLE_SCRIPT, {
-      method: 'POST',
-      body: JSON.stringify({ accion: "despachar_pedido", numeroPedido: numPedido, bodegaOrigen: "Inventario" })
-    });
-    const r = await res.json();
-    alert(r.mensaje);
-    if (r.pdfUrl) window.open(r.pdfUrl, '_blank');
-    cargarDatosBase();
-  } catch(e) {
-    alert("Error procesando el despacho.");
+  const dateInicio = new Date(strInicio + "T00:00:00");
+  const dateFin = new Date(strFin + "T23:59:59");
+
+  let totalesPorPago = { "efectivo": 0, "Mercado Pago": 0, "Addi": 0, "Paypal": 0, "Transferencia a Bancolombia": 0, "Transferencia a Davivienda": 0, "Transferencia a Nequi": 0, "Otro": 0 };
+  let granTotalCierre = 0;
+
+  baseDatosPedidos.forEach(p => {
+    const partesFecha = String(p[1]).split(',')[0].split('/'); 
+    if(partesFecha.length === 3) {
+      const pDate = new Date(`${partesFecha[2]}-${partesFecha[1].padStart(2,'0')}-${partesFecha[0].padStart(2,'0')}T12:00:00`);
+      
+      if (pDate >= dateInicio && pDate <= dateFin) {
+        const metodo = String(p[4]).trim();
+        const valor = Number(p[14]) || 0;
+
+        if (totalesPorPago[metodo] !== undefined) {
+          totalesPorPago[metodo] += valor;
+        } else {
+          totalesPorPago["Otro"] += valor;
+        }
+        granTotalCierre += valor;
+      }
+    }
+  });
+
+  let html = `
+    <div style="background: #f1f5f9; padding: 15px; border-radius: 8px;">
+      <h4 style="margin-top:0;">Resumen del periodo</h4>
+      <table style="width:100%; border:none; margin-bottom: 15px;">`;
+      
+  for (const [metodo, total] of Object.entries(totalesPorPago)) {
+    if (total > 0) {
+      html += `<tr><td style="border:none; border-bottom:1px solid #cbd5e1; padding: 8px 0;"><strong>${metodo}</strong></td>
+                   <td style="border:none; border-bottom:1px solid #cbd5e1; text-align:right; color: #0f172a;">$${total.toLocaleString('es-CO')}</td></tr>`;
+    }
   }
+
+  html += `</table>
+      <h2 style="text-align: right; color: var(--primary); margin:0;">Total Generado: $${granTotalCierre.toLocaleString('es-CO')}</h2>
+    </div>
+  `;
+
+  document.getElementById('tabla-estadisticas-box').innerHTML = html;
 }
 
 function cambiarPestaña(tab) {
+  detenerEscaner();
   document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-' + tab).classList.remove('hidden');
