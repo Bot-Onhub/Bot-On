@@ -36,36 +36,20 @@
   select.estado-dropdown { padding: 4px; border-radius: 4px; border: 1px solid #cbd5e1; font-weight: bold; }
   footer { text-align: center; margin-top: auto; padding: 20px 0; color: #64748b; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; }
   footer img { height: 24px; object-fit: contain; }
-  /* Contenedor con scroll para las tablas (asegúrate de que tus tablas estén dentro de un contenedor con esta clase o similar) */
-.table-responsive, .table-container {
-  max-height: 75vh;
-  overflow-y: auto;
-  position: relative;
-}
-
-/* Fuerza al encabezado a quedarse fijo arriba y evita transparencias */
-table th {
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 50 !important;
-  background-color: #ffffff !important; /* Cambia al color de fondo de tu diseño si es oscuro (ej: #1f2937) */
-  box-shadow: inset 0 -1px 0 #e5e7eb; /* Línea divisoria inferior opcional */
-}
+  .table-responsive, .table-container { max-height: 75vh; overflow-y: auto; position: relative; }
+  table th { position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #ffffff !important; box-shadow: inset 0 -1px 0 #e5e7eb; }
 </style>
 </head>
 <body onload="inicializarApp()">
-
 <header>
   <img src="https://static.wixstatic.com/media/d0ce54_32d30a8159fd44d4a26c62563d7bfc38~mv2.jpg" alt="Paralelo Logo">
 </header>
-
 <nav>
   <button id="btn-tab-pedidos" class="active" onclick="cambiarPestaña('pedidos')">Nuevo Pedido</button>
   <button id="btn-tab-admin" onclick="cambiarPestaña('admin')">Panel Admin</button>
   <button id="btn-tab-estadisticas" onclick="cambiarPestaña('estadisticas')">Estadísticas</button>
 </nav>
 
-<!-- PESTAÑA NUEVO PEDIDO -->
 <section id="sec-pedidos" class="card">
   <h3>Registro de Pedido</h3>
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
@@ -103,25 +87,20 @@ table th {
     </div>
     <div class="form-group"><label>Soporte de Pago</label><input type="file" id="ped_soporte" accept="image/*"></div>
   </div>
-
   <h4 style="margin-bottom: 5px;">Productos del Pedido</h4>
   <button class="btn-action" style="margin-bottom: 10px; background: #10b981;" onclick="toggleScanner()">📷 Escáner Código de Barras</button>
   <div id="contenedor-scanner" class="scanner-box hidden">
     <div id="reader"></div>
     <button class="btn-del" style="margin-top:10px;" onclick="toggleScanner()">Cerrar Escáner</button>
   </div>
-
   <div id="contenedor-productos"></div>
   <button class="btn-action" onclick="agregarFilaProducto()">+ Agregar Otra Referencia</button>
-
   <div style="text-align: right; margin-top: 15px;">
     <h3>Total Pedido: $<span id="gran_total">0</span></h3>
   </div>
-
   <button id="btn-guardar-pedido" class="btn-submit" onclick="guardarPedido()">Guardar Pedido Completo</button>
 </section>
 
-<!-- PESTAÑA ADMIN -->
 <section id="sec-admin" class="card hidden">
   <h3>Panel Administrativo</h3>
   <button class="btn-action" style="width:100%; margin-bottom:10px;" onclick="cargarDatosBase()">Actualizar Datos Nube</button>
@@ -130,7 +109,6 @@ table th {
     <button id="subtab-admin-pedidos" class="active-sub" onclick="cambiarSubPestaña('admin-pedidos')">Pedidos Registrados</button>
     <button id="subtab-admin-prod" onclick="cambiarSubPestaña('admin-prod')">Inventario y Disponibilidad</button>
   </div>
-
   <div id="admin-pedidos" class="admin-section"><div class="table-container" id="tabla-pedidos-box">Cargando...</div></div>
   
   <div id="admin-prod" class="admin-section hidden">
@@ -139,7 +117,6 @@ table th {
   </div>
 </section>
 
-<!-- PESTAÑA ESTADÍSTICAS -->
 <section id="sec-estadisticas" class="card hidden">
   <h3>Estadísticas y Cierre de Caja Profesional</h3>
   <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: end; flex-wrap: wrap;">
@@ -151,17 +128,16 @@ table th {
     <p style="color: #64748b; text-align: center; padding: 20px;">Selecciona el periodo y presiona Generar Reportes.</p>
   </div>
 </section>
-
 <footer>
   <span>Powered by</span>
   <img src="https://static.wixstatic.com/media/d0ce54_c999d1aa9976438a98b0f5b2157b7adc~mv2.png" alt="Bot-on Logo">
 </footer>
-
 <datalist id="lista-clientes"></datalist>
 <datalist id="lista-nombres-productos"></datalist>
 
 <script>
-const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwQMX2stTLP88q-R-r1juQsm2dIdBft8eCZSZWC3prLQG8zBDS232QJ5h4Y5Wn35vkGZA/exec"; // NO OLVIDES REEMPLAZAR ESTO
+// REEMPLAZAR ESTA URL LUEGO DE PUBLICAR EL CODE.GS CORREGIDO
+const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwDz-nSfDhrW6zd9NA-hDRGDeVHiYGZvlYudPvZ0tMFApnyTVzUAsIdTXy65ejR-ZUkag/exec"; 
 
 let baseDatosClientes = [];
 let baseDatosInventario = [];
@@ -169,7 +145,6 @@ let baseCatalogoProductos = [];
 let mapaProductosPorNombre = {}; 
 let baseDatosPedidos = [];
 let html5QrCode = null;
-
 const ESTADOS_PEDIDO = ['Pendiente', 'Aprobado', 'Despachado', 'Entregado', 'Cancelado'];
 
 function inicializarApp() {
@@ -184,29 +159,26 @@ function generarNumeroPedido() {
   document.getElementById('ped_nro').value = "PAR-" + Math.floor(100000 + Math.random() * 900000);
 }
 
+// ESTA FUNCION FUE REESCRITA PARA ELIMINAR LAS REFERENCIAS ROTAS
 async function cargarDatosBase() {
   try {
     const respuesta = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_datos_iniciales");
     const data = await respuesta.json();
     
-    // 1. Asignación COMPLETA de todas las variables globales (Esto fue lo que faltó)
     baseDatosPedidos = data.pedidos || [];
     baseDatosInventario = data.inventario || [];
     baseDatosClientes = data.clientes || [];
-    baseDatosProductos = data.productos || []; 
+    baseCatalogoProductos = data.productos || []; 
     
-    // 2. Aquí debes ocultar tu pantalla de carga según el ID que uses en tu HTML
-    // Ejemplo: document.getElementById('pantalla-carga').style.display = 'none';
-    
-    // 3. Renderizar las vistas
-    // Nota: Verifica que estas funciones tengan el nombre exacto que usas en el resto de tu código
-    if (typeof renderizarTablaPedidos === 'function') renderizarTablaPedidos();
-    if (typeof renderizarAdminInventario === 'function') renderizarAdminInventario();
+    procesarCatalogoProductos();
+    renderizarClientesDataList();
+    renderizarTablaAdminPedidos();
+    renderizarTablaAdminInventario();
     
   } catch (e) {
     console.error("Error al sincronizar datos:", e);
-    // Es vital quitar el "Cargando..." incluso si hay error para que no quede congelado
-    // Ejemplo: document.getElementById('pantalla-carga').style.display = 'none';
+    document.getElementById('tabla-pedidos-box').innerHTML = "Error de conexión al cargar pedidos.";
+    document.getElementById('tabla-inventario-box').innerHTML = "Error de conexión al cargar inventario.";
     alert("Hubo un error al cargar la base de datos.");
   }
 }
@@ -214,14 +186,12 @@ async function cargarDatosBase() {
 function procesarCatalogoProductos() {
   mapaProductosPorNombre = {};
   let opcionesNombresHTML = "";
-
   baseCatalogoProductos.forEach(p => {
     let ean = String(p[0] || "").trim();
     let nombre = String(p[1] || "").trim();
     let talla = String(p[2] || "").trim();
     let precioStr = String(p[3] || "").replace(/[^0-9]/g, "");
     let precio = Number(precioStr) || 0;
-
     if (nombre) {
       if (!mapaProductosPorNombre[nombre]) {
         mapaProductosPorNombre[nombre] = [];
@@ -230,7 +200,6 @@ function procesarCatalogoProductos() {
       mapaProductosPorNombre[nombre].push({ talla: talla, ean: ean, precio: precio });
     }
   });
-
   document.getElementById('lista-nombres-productos').innerHTML = opcionesNombresHTML;
   if (document.getElementById('contenedor-productos').children.length === 0) agregarFilaProducto();
 }
@@ -272,7 +241,6 @@ function agregarFilaProducto(datosPrellenados = null) {
     <button class="btn-del" onclick="eliminarFila(this)">X</button>
   `;
   document.getElementById('contenedor-productos').appendChild(div);
-
   if (datosPrellenados) {
     div.querySelector('.row-prod').value = datosPrellenados.nombre;
     alSeleccionarProducto(div.querySelector('.row-prod'), datosPrellenados.talla);
@@ -307,7 +275,6 @@ function alSeleccionarTalla(selectTalla) {
   const row = selectTalla.closest('.product-row');
   const nombreProd = row.querySelector('.row-prod').value;
   const talla = selectTalla.value;
-
   if (mapaProductosPorNombre[nombreProd]) {
     const item = mapaProductosPorNombre[nombreProd].find(x => x.talla === talla);
     if (item) {
@@ -349,10 +316,9 @@ function toggleScanner() {
 function iniciarEscaner() {
   if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
   
-  // Configuración ampliada y específica para códigos EAN/Barras
   const scannerConfig = { 
     fps: 10, 
-    qrbox: { width: 300, height: 150 }, // Rectangular y ancho para abarcar EAN completo
+    qrbox: { width: 300, height: 150 }, 
     formatsToSupport: [ 
       Html5QrcodeSupportedFormats.EAN_13, 
       Html5QrcodeSupportedFormats.EAN_8, 
@@ -360,7 +326,6 @@ function iniciarEscaner() {
       Html5QrcodeSupportedFormats.UPC_A
     ]
   };
-
   html5QrCode.start({ facingMode: "environment" }, scannerConfig, 
     (decodedText) => {
       const prodEncontrado = baseCatalogoProductos.find(p => String(p[0]).trim() === String(decodedText).trim());
@@ -371,9 +336,7 @@ function iniciarEscaner() {
         alert("EAN / Código " + decodedText + " no encontrado en la base de datos.");
       }
     },
-    (errorMessage) => {
-      // Los errores de lectura (ruido de cámara) son constantes, se ignoran en consola para no saturar.
-    }
+    (errorMessage) => { }
   ).catch(err => alert("Asegúrate de dar permisos de cámara al navegador. Error: " + err));
 }
 
@@ -385,7 +348,6 @@ async function guardarPedido() {
   const btnGuardar = document.getElementById('btn-guardar-pedido');
   const filas = document.querySelectorAll('.product-row');
   let productosArray = [];
-
   filas.forEach(row => {
     let prod = row.querySelector('.row-prod').value;
     if (prod) {
@@ -396,12 +358,11 @@ async function guardarPedido() {
       });
     }
   });
-
+  
   if (productosArray.length === 0) return alert("Agrega al menos una prenda.");
-
   btnGuardar.disabled = true;
   btnGuardar.innerText = "Procesando...";
-
+  
   let fileInput = document.getElementById('ped_soporte');
   let base64Soporte = "", nombreSoporte = "", mimeTypeSoporte = "";
   if (fileInput.files.length > 0) {
@@ -413,7 +374,7 @@ async function guardarPedido() {
       reader.onload = () => resolve(reader.result);
     });
   }
-
+  
   const payload = {
     accion: "guardar_pedido", numeroPedido: document.getElementById('ped_nro').value,
     nombreCliente: document.getElementById('ped_cliente').value, identificacion: document.getElementById('ped_identificacion').value,
@@ -424,7 +385,7 @@ async function guardarPedido() {
     estado: document.getElementById('ped_estado').value, soportePagoBase64: base64Soporte,
     soportePagoNombre: nombreSoporte, soportePagoMimeType: mimeTypeSoporte, productosArray: productosArray
   };
-
+  
   try {
     const res = await fetch(URL_GOOGLE_SCRIPT, { method: 'POST', body: JSON.stringify(payload) });
     const r = await res.json();
@@ -439,31 +400,22 @@ async function guardarPedido() {
 }
 
 async function actualizarEstadoPedidoEnNube(nroPedido, nuevoEstado, selectorHTML) {
-  // Cambio optimista en la UI
   const pedido = baseDatosPedidos.find(p => p[0] === nroPedido);
   if(pedido) pedido[15] = nuevoEstado;
   renderizarTablaAdminInventario();
-
+  
   if(nuevoEstado === "Entregado" || nuevoEstado === "Despachado") selectorHTML.style.backgroundColor = '#dcfce7';
   else if(nuevoEstado === "Cancelado") selectorHTML.style.backgroundColor = '#fee2e2';
   else selectorHTML.style.backgroundColor = '#fff';
-
+  
   try {
     const payload = { accion: "actualizar_estado_pedido", numeroPedido: nroPedido, estado: nuevoEstado };
-    
-    // Almacenamos la respuesta de fetch para evaluar si el servidor (Code.gs) retornó correctamente
-    const respuesta = await fetch(URL_GOOGLE_SCRIPT, { 
-      method: 'POST', 
-      body: JSON.stringify(payload)
-    });
-    
+    const respuesta = await fetch(URL_GOOGLE_SCRIPT, { method: 'POST', body: JSON.stringify(payload) });
     const data = await respuesta.json();
-    if(data.estado !== "exito") {
-      console.warn("Backend procesó, pero reporta fallo: ", data);
-    }
+    if(data.estado !== "exito") console.warn("Backend procesó, pero reporta fallo: ", data);
   } catch(e) {
     console.error("Fallo de red al enviar cambio de estado:", e);
-    alert("Advertencia: El backend rechazó la conexión. Verifica que copiaste la función de actualizarEstadoPedido en Code.gs y generaste un Nuevo Despliegue.");
+    alert("Advertencia: El backend rechazó la conexión. Verifica tu implementación de Code.gs.");
   }
 }
 
@@ -477,16 +429,16 @@ function renderizarTablaAdminPedidos() {
     
   baseDatosPedidos.forEach(p => {
     let btnSoporte = p[18] ? `<a href="${p[18]}" target="_blank" style="color:var(--primary); font-weight:bold;">Ver</a>` : "N/A";
-    
     let estadoActual = String(p[15]).trim();
     let bgSelect = (estadoActual === "Entregado" || estadoActual === "Despachado") ? 'background:#dcfce7;' : (estadoActual === "Cancelado" ? 'background:#fee2e2;' : 'background:#fff;');
     let selectEstado = `<select class="estado-dropdown" style="${bgSelect}" onchange="actualizarEstadoPedidoEnNube('${p[0]}', this.value, this)">`;
+    
     ESTADOS_PEDIDO.forEach(est => {
       let selected = (estadoActual === est) ? 'selected' : '';
       selectEstado += `<option value="${est}" ${selected}>${est}</option>`;
     });
+    
     selectEstado += `</select>`;
-
     html += `<tr>
       <td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td>${p[4]}</td>
       <td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td>
@@ -503,7 +455,6 @@ function renderizarTablaAdminPedidos() {
 
 function renderizarTablaAdminInventario() {
   const textoBusqueda = document.getElementById('filtro-inventario').value.toLowerCase();
-  
   let html = `<table><tr>
     <th>EAN 13</th><th>Producto</th><th>Talla</th>
     <th>Inv. Inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th>
@@ -518,14 +469,12 @@ function renderizarTablaAdminInventario() {
     const tallaInventario = String(i[3]).trim();
     
     if (nombreProducto.toLowerCase().includes(textoBusqueda)) {
-      
       let invInicial = Number(i[4]) || 0;
       let entradas = Number(i[5]) || 0;
       let salidas = Number(i[6]) || 0;
       let salidasD = Number(i[7]) || 0;
-      
       let saldoTotal = invInicial + entradas - salidas - salidasD;
-
+      
       let reservaPendiente = 0;
       baseDatosPedidos.forEach(p => {
         let estadoPedido = String(p[15]).trim().toLowerCase();
@@ -534,15 +483,13 @@ function renderizarTablaAdminInventario() {
            let nomPedido = String(p[9]).trim();
            let tallaPedido = String(p[10]).trim();
            
-           if ( (eanPedido && eanPedido === eanInventario) || 
-                (nomPedido === nombreProducto && tallaPedido === tallaInventario) ) {
+           if ((eanPedido && eanPedido === eanInventario) || (nomPedido === nombreProducto && tallaPedido === tallaInventario)) {
               reservaPendiente += (Number(p[12]) || 0);
            }
         }
       });
-
+      
       let disponibleReal = saldoTotal - reservaPendiente;
-
       html += `<tr>
         <td>${eanInventario}</td><td><strong>${nombreProducto}</strong></td><td>${tallaInventario}</td>
         <td>${invInicial}</td><td>${entradas}</td><td>${salidas}</td><td>${salidasD}</td>
@@ -559,14 +506,16 @@ function generarCierreCaja() {
   const strInicio = document.getElementById('stat_inicio').value;
   const strFin = document.getElementById('stat_fin').value;
   if (!strInicio || !strFin) return alert("Selecciona fechas válidas.");
+  
   const dateInicio = new Date(strInicio + "T00:00:00");
   const dateFin = new Date(strFin + "T23:59:59");
   const metodosPagos = ["efectivo", "Mercado Pago", "Addi", "Paypal", "Transferencia a Bancolombia", "Transferencia a Davivienda", "Transferencia a Nequi"];
   let totalesPorPago = {};
   metodosPagos.forEach(m => totalesPorPago[m] = 0);
+  
   let consolidadoProductos = {};
   let granTotalCierre = 0;
-
+  
   baseDatosPedidos.forEach(p => {
     const partesFecha = String(p[1]).split(',')[0].split('/'); 
     if(partesFecha.length === 3) {
@@ -575,23 +524,26 @@ function generarCierreCaja() {
         const metodoStr = String(p[4]).trim();
         const valorFila = Number(p[14]) || 0;
         let metodoAsignado = metodosPagos.find(m => m.toLowerCase() === metodoStr.toLowerCase());
+        
         if (metodoAsignado) totalesPorPago[metodoAsignado] += valorFila;
         else {
           if (totalesPorPago["Otros (No especificado)"] === undefined) totalesPorPago["Otros (No especificado)"] = 0;
           totalesPorPago["Otros (No especificado)"] += valorFila;
         }
+        
         granTotalCierre += valorFila;
         const nombreRef = String(p[9]).trim();
         const tallaRef = String(p[10]).trim() || "Única";
         const cantRef = Number(p[12]) || 0;
         const llave = `${nombreRef} - Talla ${tallaRef}`;
+        
         if(!consolidadoProductos[llave]) consolidadoProductos[llave] = { cantidad: 0, ingresos: 0 };
         consolidadoProductos[llave].cantidad += cantRef;
         consolidadoProductos[llave].ingresos += valorFila;
       }
     }
   });
-
+  
   let html = `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">`;
   html += `<div class="stat-card"><h4 style="margin-top:0; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">Flujo por Medio de Pago</h4><table style="width:100%; border:none; margin-bottom: 10px;">`;
   for (const [metodo, total] of Object.entries(totalesPorPago)) {
@@ -599,6 +551,7 @@ function generarCierreCaja() {
     html += `<tr><td style="border:none; border-bottom:1px solid #cbd5e1; padding: 6px 0;">${metodo}</td><td style="border:none; border-bottom:1px solid #cbd5e1; text-align:right; color: ${colorTexto}; font-weight:bold;">$${total.toLocaleString('es-CO')}</td></tr>`;
   }
   html += `</table><h3 style="text-align: right; color: var(--primary); margin:0;">Total Periodo: $${granTotalCierre.toLocaleString('es-CO')}</h3></div>`;
+  
   html += `<div class="stat-card"><h4 style="margin-top:0; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">Ventas por Referencia y Talla</h4><div style="max-height: 400px; overflow-y: auto;"><table style="width:100%; border:none;"><tr><th style="border:none; border-bottom:2px solid #cbd5e1;">Producto</th><th style="border:none; border-bottom:2px solid #cbd5e1; text-align:center;">Uds.</th><th style="border:none; border-bottom:2px solid #cbd5e1; text-align:right;">Ingreso</th></tr>`;
   let refs = Object.keys(consolidadoProductos).sort();
   if (refs.length === 0) html += `<tr><td colspan="3" style="text-align:center; padding:15px; color:#64748b; border:none;">No se registran ventas en este periodo.</td></tr>`;
