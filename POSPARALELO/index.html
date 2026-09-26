@@ -401,13 +401,44 @@ async function guardarPedido() {
 
 async function actualizarEstadoPedidoEnNube(nroPedido, nuevoEstado, selectorHTML) {
   const pedido = baseDatosPedidos.find(p => p[0] === nroPedido);
-  if(pedido) pedido[15] = nuevoEstado;
+  if (!pedido) return;
+
+  // Extraer datos para la matemática local
+  let estadoAnterior = String(pedido[15]).trim().toLowerCase();
+  let estadoNuevoNorm = String(nuevoEstado).trim().toLowerCase();
+  let eanProducto = String(pedido[11]).trim();
+  let cantidad = Number(pedido[12]) || 0;
+
+  // 1. Actualizar estado en el pedido localmente (esto quita la reserva)
+  pedido[15] = nuevoEstado;
+
+  // 2. Modificar el inventario localmente para reflejar la salida física
+  let itemInv = baseDatosInventario.find(i => String(i[1]).trim() === eanProducto);
+  if (itemInv && estadoAnterior !== estadoNuevoNorm) {
+    // PASO A: Revertir efecto físico del estado anterior
+    if (estadoAnterior === "entregado") {
+      itemInv[6] = Math.max(0, (Number(itemInv[6]) || 0) - cantidad);
+    } else if (estadoAnterior === "despachado") {
+      itemInv[7] = Math.max(0, (Number(itemInv[7]) || 0) - cantidad);
+    }
+
+    // PASO B: Aplicar efecto físico del nuevo estado
+    if (estadoNuevoNorm === "entregado") {
+      itemInv[6] = (Number(itemInv[6]) || 0) + cantidad;
+    } else if (estadoNuevoNorm === "despachado") {
+      itemInv[7] = (Number(itemInv[7]) || 0) + cantidad;
+    }
+  }
+
+  // 3. Renderizar la tabla inmediatamente (el cambio visual será instantáneo)
   renderizarTablaAdminInventario();
   
-  if(nuevoEstado === "Entregado" || nuevoEstado === "Despachado") selectorHTML.style.backgroundColor = '#dcfce7';
-  else if(nuevoEstado === "Cancelado") selectorHTML.style.backgroundColor = '#fee2e2';
+  // Cambiar colores visuales del selector
+  if (nuevoEstado === "Entregado" || nuevoEstado === "Despachado") selectorHTML.style.backgroundColor = '#dcfce7';
+  else if (nuevoEstado === "Cancelado") selectorHTML.style.backgroundColor = '#fee2e2';
   else selectorHTML.style.backgroundColor = '#fff';
   
+  // 4. Enviar actualización silenciosa a Google Sheets
   try {
     const payload = { accion: "actualizar_estado_pedido", numeroPedido: nroPedido, estado: nuevoEstado };
     const respuesta = await fetch(URL_GOOGLE_SCRIPT, { method: 'POST', body: JSON.stringify(payload) });
@@ -415,7 +446,7 @@ async function actualizarEstadoPedidoEnNube(nroPedido, nuevoEstado, selectorHTML
     if(data.estado !== "exito") console.warn("Backend procesó, pero reporta fallo: ", data);
   } catch(e) {
     console.error("Fallo de red al enviar cambio de estado:", e);
-    alert("Advertencia: El backend rechazó la conexión. Verifica tu implementación de Code.gs.");
+    alert("Advertencia: El backend no responde, pero el cambio se hizo visualmente. Verifica tu conexión.");
   }
 }
 
