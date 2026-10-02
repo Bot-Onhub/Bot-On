@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Arándanos de Vida</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #5b21b6;
+            --primary-dark: #4c1d95;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); }
+        .hidden { display: none !important; }
+        header { background: var(--primary); color: white; padding: 1rem; text-align: center; }
+        nav { display: flex; background: #1e293b; overflow-x: auto; }
+        nav button { flex: 1; padding: 0.8rem; background: none; border: none; color: white; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
+        nav button.active { background: var(--primary-dark); }
+        main { max-width: 950px; margin: 0 auto; padding: 1rem; }
+        .card { background: var(--card-bg); padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+        h3 { margin-bottom: 1rem; color: var(--primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 0.3rem; }
+        input, select { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; }
+        .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 0.8rem; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 1rem; }
+        .btn-action { background: #0ea5e9; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+        .btn-danger { background: #dc2626; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+        #reader { width: 100%; max-width: 400px; margin: 0 auto 1rem auto; border-radius: 8px; overflow: hidden; background: #000; }
+        .table-container { overflow-x: auto; max-height: 400px; margin-top: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: left; white-space: nowrap; }
+        th, td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f1f5f9; position: sticky; top: 0; color: var(--primary-dark); font-weight: bold; }
+        .admin-nav { display: flex; margin-bottom: 1rem; border-bottom: 2px solid #e2e8f0; overflow-x: auto; }
+        .admin-nav button { padding: 0.5rem 1rem; background: none; border: none; cursor: pointer; font-weight: bold; color: #64748b; font-size: 0.85rem; }
+        .admin-nav button.active-sub { color: var(--primary); border-bottom: 3px solid var(--primary); }
+        .admin-section { display: none; }
+        .admin-section.active-sub { display: block; }
+        .product-row { display: grid; grid-template-columns: 2fr 1.2fr 0.8fr 1fr 1fr auto; gap: 0.5rem; align-items: end; margin-bottom: 0.5rem; background: #f8fafc; padding: 0.5rem; border-radius: 6px; border: 1px solid #e2e8f0; }
+        #scan_feedback { text-align: center; font-weight: bold; color: var(--primary); margin-bottom: 10px; min-height: 1.2em; }
+        .developer-credit { text-align: center; padding: 2rem 1rem; margin-top: 2rem; border-top: 1px solid #e2e8f0; }
+        .developer-credit p { font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .developer-credit img { height: 45px; object-fit: contain; }
+        /* --- ESTILOS DEL PANEL DE ESTADÍSTICAS --- */
+        .cabecera-panel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+        .grupo-botones button { padding: 10px 16px; margin-left: 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; color: #fff; transition: background-color 0.2s; }
+        .btn-descarga { background-color: #0ea5e9; } 
+        .btn-descarga:hover { background-color: #0284c7; }
+        .btn-cierre { background-color: #dc2626; }
+        .btn-cierre:hover { background-color: #b91c1c; }
+        .grid-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px; }
+        .tarjeta-kpi { background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center; }
+        .tarjeta-kpi h3 { font-size: 13px; text-transform: uppercase; color: #64748b; margin: 0 0 8px 0; border-bottom: none; padding-bottom: 0; }
+        .tarjeta-kpi p { font-size: 28px; font-weight: bold; margin: 0; color: var(--primary-dark); }
+        .tarjeta-top { grid-column: span 2; text-align: left; }
+        .lista-top { list-style: none; padding: 0; margin: 0; font-size: 14px; color: var(--text-main); }
+        .lista-top li { padding: 6px 0; border-bottom: 1px solid #e2e8f0; }
+        .lista-top li:last-child { border-bottom: none; }
+        .contenedor-grafico { background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; height: 320px; display: flex; align-items: center; justify-content: center; color: #94a3b8; }
+        @media (max-width: 768px) { .tarjeta-top { grid-column: span 1; } }
+    </style>
+</head>
+<body onload="inicializarApp()">
+    <header><h2>Arándanos de Vida</h2></header>
+    
+    <nav>
+        <button id="btn-tab-pedidos" class="active" onclick="cambiarPestaña('pedidos')">Pedidos</button>
+        <button id="btn-tab-inventario" onclick="cambiarPestaña('inventario')">Escanear</button>
+        <button id="btn-tab-insumos" onclick="cambiarPestaña('insumos')">Insumos</button>
+        <button id="btn-tab-admin" onclick="cambiarPestaña('admin')">Admin</button>
+        <button id="btn-tab-estadisticas" onclick="cambiarPestaña('estadisticas')">Estadísticas</button>
+    </nav>
+    <main>
+        <!-- PESTAÑA PEDIDOS -->
+        <section id="sec-pedidos" class="card">
+            <h3>Nuevo Pedido</h3>
+            <div class="form-group">
+                <label>N° Pedido (Automático)</label>
+                <input type="text" id="ped_nro" readonly style="background:#f1f5f9;"> 
+            </div>
+            
+            <div class="form-group">
+                <label>Nombre Cliente <button type="button" class="btn-action" style="float: right; padding: 2px 6px;" onclick="mostrarFormularioClienteNuevo()">+ Nuevo Cliente</button></label>
+                <input list="lista-clientes" id="ped_cliente" onchange="autocompletarCliente()" placeholder="Selecciona o escribe el cliente"> 
+                <datalist id="lista-clientes"></datalist>
+            </div>
+            
+            <div id="seccion-nuevo-cliente" class="hidden" style="background: #f1f5f9; padding: 10px; border-radius: 6px; margin-bottom: 1rem;">
+                <h4>Registrar Nuevo Cliente</h4>
+                <div class="form-group"><label>NIT / Identificación</label><input type="text" id="nuevo_cli_nit"></div>
+                <div class="form-group"><label>Dirección</label><input type="text" id="nuevo_cli_dir"></div>
+                <div class="form-group"><label>Teléfono</label><input type="tel" id="nuevo_cli_tel"></div>
+                <div class="form-group"><label>Correo</label><input type="email" id="nuevo_cli_correo"></div>
+                <div class="form-group"><label>Ciudad</label><input type="text" id="nuevo_cli_ciudad"></div>
+                <button type="button" class="btn-action" onclick="guardarClienteNuevo()">Guardar Cliente en Base de Datos</button>
+            </div>
+            
+            <div class="form-group"><label>Identificación</label><input type="text" id="ped_identificacion"></div>
+            <div class="form-group"><label>Dirección</label><input type="text" id="ped_direccion"></div>
+            <div class="form-group"><label>Teléfono</label><input type="tel" id="ped_telefono"></div>
+            <div class="form-group"><label>Correo</label><input type="email" id="ped_correo"></div>
+            <div class="form-group"><label>Ciudad</label><input type="text" id="ped_ciudad"></div>
+            <div class="form-group"><label>Sucursal</label><input type="text" id="ped_sucursal"></div>
+            
+            <hr style="margin: 1rem 0; border:0; border-top:1px solid #cbd5e1;">
+            <h4>Productos del Pedido</h4>
+            <div id="contenedor-productos" style="margin-top: 0.5rem;"></div>
+            <button type="button" class="btn-action" style="margin-top: 0.5rem; width: 100%; padding: 0.5rem;" onclick="agregarFilaProducto()">+ Agregar otro producto</button> 
+            <div style="margin-top: 1rem; text-align: right; font-weight: bold; font-size: 1rem;">
+                Gran Total: $<span id="gran_total">0</span>
+            </div>
+            <hr style="margin: 1rem 0; border:0; border-top:1px solid #cbd5e1;">
+            <div class="form-group">
+                <label>Estado</label>
+                <select id="ped_estado">
+                    <option value="ingresado">Ingresado</option>
+                    <option value="en proceso">En proceso</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="despachado">Despachado</option>
+                    <option value="entregado">Entregado</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Vendedor</label><input type="text" id="ped_vendedor"></div>
+            <div class="form-group">
+                <label>Tipo Pedido</label>
+                <select id="ped_tipopedido">
+                    <option value="Pedido en Firme">Pedido en Firme</option>
+                    <option value="Consignación">Consignación</option>
+                </select>
+            </div>
+            <button class="btn-submit" onclick="guardarPedido()">Guardar Pedido Completo</button>
+        </section>
+
+        <!-- PESTAÑA ESCÁNER -->
+        <section id="sec-inventario" class="card hidden">
+            <h3>Lector de Códigos (Inventario)</h3> 
+            <div class="form-group">
+                <label>Tipo de Movimiento</label>
+                <select id="scan_movimiento">
+                    <option value="Entrada">Entrada</option>
+                    <option value="Salida">Salida</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Cantidad</label>
+                <input type="number" id="scan_cantidad" value="1" min="1">
+            </div>
+            <p id="scan_feedback"></p>
+            <div id="reader"></div>
+            <button class="btn-submit" onclick="iniciarEscanner()">Activar Cámara</button>
+            <button class="btn-submit" style="background: #dc2626; margin-top:5px;" onclick="detenerEscanner()">Detener Cámara</button>
+            
+            <div style="margin-top: 15px; border-top: 2px solid #e2e8f0; padding-top: 10px;">
+                <label>Ingreso Manual de Producto</label>
+                <div style="display: flex; gap: 0.5rem; margin-top: 5px;">
+                    <select id="manual_prod_select" style="flex:1;"><option value="">Seleccione un producto...</option></select>
+                    <button class="btn-action" onclick="ingresoManualProducto()">Registrar</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PESTAÑA INSUMOS -->
+        <section id="sec-insumos" class="card hidden">
+            <h3>Control de Insumos</h3> 
+            <div class="form-group">
+                <label>Insumo</label>
+                <input list="lista-insumos-datalist" id="ins_nombre" placeholder="Selecciona o escribe el insumo">
+                <datalist id="lista-insumos-datalist"></datalist>
+            </div>
+            <div class="form-group">
+                <label>Tipo de Movimiento</label>
+                <select id="ins_movimiento"><option value="Entrada">Entrada</option><option value="Salida">Salida</option></select>
+            </div>
+            <div class="form-group"><label>Cantidad</label><input type="number" id="ins_cantidad"></div>
+            <button class="btn-submit" onclick="guardarInsumo()">Guardar Movimiento</button>
+        </section>
+
+        <!-- PESTAÑA ADMIN -->
+        <section id="sec-admin" class="card hidden">
+            <h3>Panel Administrativo</h3> 
+            <button id="btn-actualizar" class="btn-action" style="width:100%; margin-bottom: 1rem; padding: 0.6rem;" onclick="forzarActualizacion()">Actualizar Datos de la Nube</button>
+            
+            <div class="admin-nav">
+                <button id="subtab-admin-pedidos" class="active-sub" onclick="cambiarSubPestaña('admin-pedidos')">Pedidos</button>
+                <button id="subtab-admin-prod" onclick="cambiarSubPestaña('admin-prod')">Prod. Terminados</button>
+                <button id="subtab-admin-medellin" onclick="cambiarSubPestaña('admin-medellin')">Bodega Medellín</button>
+                <button id="subtab-admin-insumos" onclick="cambiarSubPestaña('admin-insumos')">Insumos</button>
+                <button id="subtab-admin-consignaciones" onclick="cambiarSubPestaña('admin-consignaciones')">Consignaciones</button>
+            </div>
+            <div id="admin-pedidos" class="admin-section active-sub"><div class="table-container" id="tabla-pedidos-box">Cargando...</div></div>
+            <div id="admin-prod" class="admin-section"><div class="table-container" id="tabla-inventario-box">Cargando...</div></div>
+            <div id="admin-medellin" class="admin-section"><div class="table-container" id="tabla-medellin-box">Cargando...</div></div>
+            <div id="admin-insumos" class="admin-section"><div class="table-container" id="tabla-insumos-box">Cargando...</div></div>
+            <div id="admin-consignaciones" class="admin-section">
+    <div style="margin-bottom: 10px; background: #f1f5f9; padding: 10px; border-radius: 6px;">
+        <label style="display:inline-block; margin-right: 10px; font-weight: bold;">Ver datos del cliente:</label>
+        <select id="filtro-cliente-consignacion" onchange="renderizarTablaConsignaciones()" style="width: auto; display: inline-block; padding: 5px; border-radius: 4px; border: 1px solid #cbd5e1;">
+            <option value="TODOS">Todos los clientes</option>
+        </select>
+    </div>
+    <div class="table-container" id="tabla-consignaciones-box">Cargando...</div>
+</div>
+        </section>
+    
+            <!-- PESTAÑA ESTADÍSTICAS -->
+        <section id="sec-estadisticas" class="card hidden">
+            <div class="cabecera-panel">
+                <h3 style="border: none; margin: 0; padding: 0;">Panel de Estadísticas</h3>
+                <div class="grupo-botones">
+                    <button onclick="descargarInformeCSV()" class="btn-descarga">Descargar Informe</button>
+                    <button onclick="realizarCierreMes()" class="btn-cierre">Cierre de Mes</button>
+                </div>
+            </div>
+            
+            <!-- Panel de Filtros -->
+            <div class="filtros-estadisticas" style="display: flex; gap: 10px; margin-bottom: 20px; background: #f1f5f9; padding: 15px; border-radius: 8px; flex-wrap: wrap; align-items: flex-end; border: 1px solid #cbd5e1;">
+                <div style="flex: 1; min-width: 150px;">
+                    <label>Fecha Inicial:</label>
+                    <input type="date" id="filtro-fecha-inicio">
+                </div>
+                <div style="flex: 1; min-width: 150px;">
+                    <label>Fecha Final:</label>
+                    <input type="date" id="filtro-fecha-fin">
+                </div>
+                <div style="flex: 1; min-width: 150px;">
+                    <label>Filtrar por Cliente:</label>
+                    <select id="filtro-cliente">
+                        <option value="TODOS">Todos los clientes</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="btn-submit" style="margin-top: 0; padding: 0.6rem 1rem;" onclick="aplicarFiltrosEstadisticas()">Aplicar Filtros</button>
+                </div>
+            </div>
+            
+           <!-- Tarjetas de KPIs Ampliadas -->
+            <div class="grid-kpis">
+                <div class="tarjeta-kpi">
+                    <h3>Ventas Históricas (Acumulado)</h3>
+                    <p id="kpi-ventas-acumuladas">$0</p>
+                </div>
+                <div class="tarjeta-kpi">
+                    <h3 id="titulo-kpi-mes">Ventas del Período / Mes</h3>
+                    <p id="kpi-ventas-mes">$0</p>
+                </div>
+                <!-- NUEVA TARJETA PARA CONSIGNACIÓN -->
+                <div class="tarjeta-kpi">
+                    <h3>Consignaciones (Mes)</h3>
+                    <p id="kpi-consignacion-mes">$0</p>
+                </div>
+                <div class="tarjeta-kpi">
+                    <h3>Cantidad Pedidos</h3>
+                    <p id="kpi-pedidos">0</p>
+                </div>
+                <div class="tarjeta-kpi tarjeta-top" style="grid-column: span 3;">
+                    <h3>Top Productos (Según filtros)</h3>
+                    <ul id="kpi-top-productos" class="lista-top" style="display: flex; gap: 15px; justify-content: space-around;">
+                        <li>Esperando datos...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Contenedor para Gráficos Avanzados -->
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+        <div class="contenedor-grafico" style="flex: 1; min-width: 300px; position: relative; height:320px; flex-direction: column;">
+            <h4 style="margin-bottom: 10px; color: var(--primary); text-align: center; width: 100%;">Ventas en Firme vs Consignaciones</h4>
+            <div style="position: relative; height: 100%; width: 100%;"><canvas id="graficoTiposPedido"></canvas></div>
+        </div>
+        <div class="contenedor-grafico" style="flex: 1; min-width: 300px; position: relative; height:320px; flex-direction: column;">
+            <h4 style="margin-bottom: 10px; color: var(--primary); text-align: center; width: 100%;">Ventas en Firme por Cliente</h4>
+            <div style="position: relative; height: 100%; width: 100%;"><canvas id="graficoClientesFirme"></canvas></div>
+        </div>
+    </div>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+        <div class="contenedor-grafico" style="flex: 1; min-width: 300px; position: relative; height:320px; flex-direction: column;">
+            <h4 style="margin-bottom: 10px; color: var(--primary); text-align: center; width: 100%;">Consignaciones por Cliente</h4>
+            <div style="position: relative; height: 100%; width: 100%;"><canvas id="graficoClientesConsignacion"></canvas></div>
+        </div>
+    </div>        </section>
+
+        <footer class="developer-credit">
+            <p>Plataforma desarrollada por</p>
+            <img src="https://static.wixstatic.com/media/d0ce54_c999d1aa9976438a98b0f5b2157b7adc~mv2.png" alt="Logo Desarrollador">
+        </footer>
+    </main>
+
+    <datalist id="lista-productos-datalist"></datalist>
+
+    <script>
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxK-jFkx__zN78ctysm2vL4ZPVeeWGMJM8LDZAkPRYr4v2bnBqhbMrSsHaRlTozVEolOA/exec"; 
+        let baseDatosClientes = [];
+        let baseDatosProductos = [];
+        let html5QrCode = null;
+        let intervaloActualizacion;
+        let baseDatosConsignaciones = [];
+
+        function inicializarApp() {
+            generarNumeroPedido();
+            cargarDatosBase();
+            cargarInsumosFetch(); 
+            intervaloActualizacion = setInterval(cargarDatosBase, 60000);
+        }
+
+        async function forzarActualizacion() {
+            const btn = document.getElementById('btn-actualizar');
+            btn.innerText = "Actualizando datos...";
+            btn.disabled = true;
+            clearInterval(intervaloActualizacion);
+            await cargarDatosBase();
+            intervaloActualizacion = setInterval(cargarDatosBase, 60000);
+            btn.innerText = "Actualizar Datos de la Nube";
+            btn.disabled = false;
+            alert("Los datos se han sincronizado correctamente.");
+        }
+
+        function generarNumeroPedido() {
+            const ahora = new Date();
+            const anio = ahora.getFullYear();
+            const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+            const dia = String(ahora.getDate()).padStart(2, '0');
+            const hora = String(ahora.getHours()).padStart(2, '0');
+            const min = String(ahora.getMinutes()).padStart(2, '0');
+            const seg = String(ahora.getSeconds()).padStart(2, '0');
+            document.getElementById('ped_nro').value = `PED-${anio}${mes}${dia}-${hora}${min}${seg}`;
+        }
+
+        function cambiarPestaña(pestaña) {
+            document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+            document.getElementById('sec-' + pestaña).classList.remove('hidden');
+            document.getElementById('btn-tab-' + pestaña).classList.add('active');
+            document.getElementById('scan_feedback').innerText = ""; 
+            if (pestaña !== 'inventario') { detenerEscanner(); }
+            
+            if (pestaña === 'estadisticas') { 
+                cargarEstadisticas(); 
+            }
+        }
+
+        let todosLosPedidosMes = [];
+        let todosLosPedidosAcumulados = [];
+        let miGraficoVentas = null;
+        let miGraficoClientes = null;
+
+        async function cargarEstadisticas() {
+            try {
+                document.getElementById('kpi-top-productos').innerHTML = "<li>Cargando datos del servidor...</li>";
+                
+                const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_estadisticas_avanzadas&_ts=" + new Date().getTime());
+                const datos = res.ok ? await res.json() : { mes: [], acumulado: [] };
+                
+                todosLosPedidosMes = datos.mes || [];
+                todosLosPedidosAcumulados = datos.acumulado || [];
+                
+                llenarSelectClientes();
+                aplicarFiltrosEstadisticas(); 
+                
+            } catch (e) {
+                console.error("Error al cargar estadísticas:", e);
+                document.getElementById('kpi-top-productos').innerHTML = "<li>Error al consultar la base de datos</li>";
+            }
+        }
+
+        function llenarSelectClientes() {
+            const select = document.getElementById('filtro-cliente');
+            let clientesUnicos = new Set();
+            
+            const todosLosDatos = [...todosLosPedidosAcumulados, ...todosLosPedidosMes];
+            todosLosDatos.forEach(fila => {
+                let cliente = fila[2]; 
+                if (cliente) clientesUnicos.add(cliente);
+            });
+            
+            let htmlOpciones = '<option value="TODOS">Todos los clientes</option>';
+            Array.from(clientesUnicos).sort().forEach(cli => {
+                htmlOpciones += `<option value="${cli}">${cli}</option>`;
+            });
+            select.innerHTML = htmlOpciones;
+        }
+
+        function convertirFecha(fechaTexto) {
+            if (!fechaTexto) return new Date(0);
+            let soloFecha = fechaTexto.split(',')[0].trim();
+            let partes = soloFecha.split('/');
+            if (partes.length === 3) {
+                return new Date(partes[2], partes[1] - 1, partes[0]);
+            }
+            return new Date(fechaTexto);
+        }
+
+        function aplicarFiltrosEstadisticas() {
+            const clienteSel = document.getElementById('filtro-cliente').value;
+            const fechaInicioStr = document.getElementById('filtro-fecha-inicio').value;
+            const fechaFinStr = document.getElementById('filtro-fecha-fin').value;
+            
+            let fechaInicio = fechaInicioStr ? new Date(fechaInicioStr + "T00:00:00") : null;
+            let fechaFin = fechaFinStr ? new Date(fechaFinStr + "T23:59:59") : null;
+            
+            const filtrarDatos = (datos) => {
+                return datos.filter(fila => {
+                    let clienteFila = fila[2];
+                    let fechaFila = convertirFecha(String(fila[1]));
+                    
+                    let pasaCliente = (clienteSel === "TODOS" || clienteFila === clienteSel);
+                    let pasaFechaInicio = (!fechaInicio || fechaFila >= fechaInicio);
+                    let pasaFechaFin = (!fechaFin || fechaFila <= fechaFin);
+                    
+                    return pasaCliente && pasaFechaInicio && pasaFechaFin;
+                });
+            };
+
+            let pedidosMesFiltrados = filtrarDatos(todosLosPedidosMes);
+            let pedidosAcumuladosFiltrados = filtrarDatos(todosLosPedidosAcumulados);
+
+            let ventasFirmeMes = 0;
+            let consignacionMes = 0;
+            let cantidadPedidosMes = new Set();
+            
+            pedidosMesFiltrados.forEach(fila => {
+                let valor = parseFloat(fila[13]) || 0;
+                let tipoPedido = String(fila[16] || "").trim();
+                
+                if (tipoPedido === "Consignación") {
+                    consignacionMes += valor;
+                } else {
+                    ventasFirmeMes += valor;
+                }
+                
+                if(fila[0]) cantidadPedidosMes.add(fila[0]); 
+            });
+
+            let totalAcumulado = 0;
+            pedidosAcumuladosFiltrados.forEach(fila => {
+                totalAcumulado += parseFloat(fila[13]) || 0;
+            });
+
+            // Actualizar tarjetas KPIs
+            document.getElementById('kpi-ventas-mes').innerText = "$" + ventasFirmeMes.toLocaleString('es-CO');
+            document.getElementById('kpi-consignacion-mes').innerText = "$" + consignacionMes.toLocaleString('es-CO');
+            document.getElementById('kpi-pedidos').innerText = cantidadPedidosMes.size;
+            document.getElementById('kpi-ventas-acumuladas').innerText = "$" + totalAcumulado.toLocaleString('es-CO');
+
+            let todosFiltrados = [...pedidosAcumuladosFiltrados, ...pedidosMesFiltrados];
+            let conteoProductos = {};
+            let ventasPorClienteFirme = {};
+            let ventasPorClienteConsignacion = {};
+
+            todosFiltrados.forEach(fila => {
+                let cliente = fila[2] || "Desconocido";
+                let producto = fila[9]; 
+                let cantidad = parseFloat(fila[11]) || 0; 
+                let subtotal = parseFloat(fila[13]) || 0;
+                let tipoPedido = String(fila[16] || "").trim();
+                
+                if (producto) conteoProductos[producto] = (conteoProductos[producto] || 0) + cantidad;
+                
+                if (cliente) {
+                    if (tipoPedido === "Consignación") {
+                        ventasPorClienteConsignacion[cliente] = (ventasPorClienteConsignacion[cliente] || 0) + subtotal;
+                    } else {
+                        ventasPorClienteFirme[cliente] = (ventasPorClienteFirme[cliente] || 0) + subtotal;
+                    }
+                }
+            });
+
+            // Renderizar Top Productos
+            let topProductos = Object.entries(conteoProductos).sort((a, b) => b[1] - a[1]).slice(0, 3);
+            let ulTop = document.getElementById('kpi-top-productos');
+            if (topProductos.length === 0) {
+                ulTop.innerHTML = "<li>No hay ventas para los filtros seleccionados</li>";
+            } else {
+                ulTop.innerHTML = "";
+                topProductos.forEach(([prod, cant], index) => {
+                    ulTop.innerHTML += `<li><strong>#${index + 1}</strong> ${prod} (${cant} unds)</li>`;
+                });
+            }
+
+            // Dibujar todas las gráficas por separado
+            dibujarGraficoTiposPedido(ventasFirmeMes, consignacionMes);
+            dibujarGraficoClientesFirme(ventasPorClienteFirme);
+            dibujarGraficoClientesConsignacion(ventasPorClienteConsignacion);
+        }
+        function dibujarGraficoVentas(conteoProductos) {
+            const ctx = document.getElementById('graficoVentas').getContext('2d');
+            if (miGraficoVentas) miGraficoVentas.destroy(); 
+            
+            miGraficoVentas = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(conteoProductos),
+                    datasets: [{
+                        label: 'Unidades Vendidas',
+                        data: Object.values(conteoProductos),
+                        backgroundColor: '#5b21b6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function dibujarGraficoClientes(ventasPorCliente) {
+            const ctx = document.getElementById('graficoClientes').getContext('2d');
+            if (miGraficoClientes) miGraficoClientes.destroy();
+            
+            let labels = Object.keys(ventasPorCliente);
+            let datos = Object.values(ventasPorCliente);
+            let colores = labels.map((_, i) => `hsl(${i * (360 / Math.max(labels.length, 1))}, 70%, 55%)`);
+            
+            miGraficoClientes = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: datos,
+                        backgroundColor: colores,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } }
+                }
+            });
+        }
+
+        async function realizarCierreMes() {
+            if (confirm("¿Estás seguro de realizar el cierre? Se eliminarán de la vista principal únicamente los pedidos despachados o entregados, manteniendo el historial en acumulados.")) {
+                await enviarDatos({ accion: "limpiar_pedidos_mes" });
+                alert("Cierre de mes completado.");
+                cargarEstadisticas();
+            }
+        }
+
+        function cambiarSubPestaña(subId) {
+            document.querySelectorAll('.admin-section').forEach(el => el.classList.remove('active-sub'));
+            document.querySelectorAll('.admin-nav button').forEach(el => el.classList.remove('active-sub'));
+            document.getElementById(subId).classList.add('active-sub');
+            document.getElementById('subtab-' + subId).classList.add('active-sub');
+        }
+
+        function mostrarFormularioClienteNuevo() {
+            const seccion = document.getElementById('seccion-nuevo-cliente');
+            seccion.classList.toggle('hidden');
+            if(!seccion.classList.contains('hidden')) {
+                document.getElementById('nuevo_cli_nit').value = document.getElementById('ped_identificacion').value;
+            }
+        }
+
+        async function guardarClienteNuevo() {
+            let nombreCliente = document.getElementById('ped_cliente').value;
+            let nit = document.getElementById('nuevo_cli_nit').value;
+            let dir = document.getElementById('nuevo_cli_dir').value;
+            let tel = document.getElementById('nuevo_cli_tel').value;
+            let correo = document.getElementById('nuevo_cli_correo').value;
+            let ciudad = document.getElementById('nuevo_cli_ciudad').value;
+            if(!nombreCliente || !nit) {
+                alert("Por favor ingrese al menos el nombre del cliente y su NIT/Identificación.");
+                return;
+            }
+            await enviarDatos({
+                accion: "guardar_cliente",
+                nombre: nombreCliente,
+                identificacion: nit,
+                direccion: dir,
+                telefono: tel,
+                correo: correo,
+                ciudad: ciudad
+            });
+            document.getElementById('ped_identificacion').value = nit;
+            document.getElementById('ped_direccion').value = dir;
+            document.getElementById('ped_telefono').value = tel;
+            document.getElementById('ped_correo').value = correo;
+            document.getElementById('ped_ciudad').value = ciudad;
+            document.getElementById('seccion-nuevo-cliente').classList.add('hidden');
+        }
+
+        async function cargarDatosBase() {
+    try {
+        const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo&_ts=" + new Date().getTime());
+        const data = res.ok ? await res.json() : null; 
+        if (!data) return; 
+        
+        try {
+            baseDatosClientes = data.clientes || [];
+            let dataCli = "";
+            baseDatosClientes.forEach(cli => {
+                if (cli && cli[0]) { dataCli += `<option value="${cli[0]}">`; }
+            });
+            document.getElementById('lista-clientes').innerHTML = dataCli;
+            
+            baseDatosProductos = data.productos || [];
+            baseDatosConsignaciones = data.consignaciones || []; // <-- CORREGIDO AQUÍ
+            renderizarTablaConsignaciones();
+            
+            let dataProd = "";
+            let selectManual = "<option value=''>Seleccione un producto...</option>";
+            baseDatosProductos.forEach(prod => { 
+                if (prod && prod[1]) {
+                    dataProd += `<option value="${prod[1]}">`; 
+                    selectManual += `<option value="${prod[0]}">${prod[1]}</option>`;
+                }
+            });
+            document.getElementById('lista-productos-datalist').innerHTML = dataProd;
+            document.getElementById('manual_prod_select').innerHTML = selectManual;
+            if (document.getElementById('contenedor-productos').children.length === 0) { agregarFilaProducto(); }
+        } catch (errClientes) {
+            console.error("Error al cargar clientes o productos:", errClientes);
+        }
+        
+        try {
+            // 1. Agregamos la columna 'Cant.' antes de 'Producto' en los encabezados
+            let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Cant.</th><th>Producto</th><th>Total Pedido</th><th>Estado</th><th>Acción</th></tr>";
+            const listaPedidos = data.pedidos || [];
+            const pedidosAgrupados = {};
+            
+            listaPedidos.forEach((p) => {
+                const numPedido = p[0];
+                if (!pedidosAgrupados[numPedido]) {
+                    pedidosAgrupados[numPedido] = {
+                        fecha: p[1],
+                        cliente: p[2],
+                        cantidadesHtml: "", // Nueva variable para la columna de cantidades
+                        productosHtml: "",  
+                        totalPedido: 0,
+                        estadoGeneral: p[14] || "ingresado",
+                        tipoPedido: p[16] || "",
+                        items: []
+                    };
+                }
+                let cant = p[11] || 0;
+                let nombreProd = p[9] || "";
+                let totalItem = parseFloat(p[13]) || 0;
+                
+                // 2. Construimos ambas columnas en paralelo usando divs protegidos contra saltos de línea
+                pedidosAgrupados[numPedido].cantidadesHtml += `<div style="margin-bottom:6px; font-weight:bold; text-align:center; color:#0f172a;">${cant}</div>`;
+                pedidosAgrupados[numPedido].productosHtml += `<div style="margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${nombreProd}">${nombreProd} <span style="color:#64748b; font-size:0.9em;">($${totalItem})</span></div>`;
+                
+                pedidosAgrupados[numPedido].totalPedido += totalItem;
+            });
+            
+            Object.keys(pedidosAgrupados).forEach(numPedido => {
+                let ped = pedidosAgrupados[numPedido];
+                let esDespachado = (ped.estadoGeneral === "despachado" || ped.estadoGeneral === "entregado");
+                let botonAccion = esDespachado 
+                    ? `<span style="color: #16a34a; font-weight: bold;">✔ Despachado</span>`
+                    : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}', '${ped.tipoPedido}')">Despachar Pedido</button>`;
+                    
+                // 3. Imprimimos las columnas separadas en la fila de la tabla
+                htmlPedidos += `<tr>
+                    <td>${numPedido}</td>
+                    <td>${ped.fecha}</td>
+                    <td>${ped.cliente}</td>
+                    <td style="vertical-align: top; background-color: #f8fafc;">${ped.cantidadesHtml}</td>
+                    <td style="vertical-align: top;">${ped.productosHtml}</td>
+                    <td>$${ped.totalPedido}</td>
+                    <td><strong>${ped.estadoGeneral}</strong></td>
+                    <td>${botonAccion}</td>
+                </tr>`;
+            });
+            document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
+        } catch (errPedidos) {
+            console.error("Error al cargar la tabla de pedidos:", errPedidos);
+        }
+        
+        try {
+            let htmlInv = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
+            const listaInventario = data.inventario || [];
+            listaInventario.forEach(i => {
+                htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td>${i[6]}</td><td><strong>${i[7]}</strong></td><td>${i[8]}</td><td><strong style="color:var(--primary);">${i[9]}</strong></td></tr>`;
+            });
+            document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
+        } catch (e) {}
+
+        // Renderizar inventario de Bodega Medellín con las 10 columnas completas
+try {
+    let htmlMedellin = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>Inv. Inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
+    const listaMedellin = data.inventarioMedellin || [];
+    
+    // Omitir encabezados si vienen repetidos desde Sheets
+    const filasDatos = (listaMedellin.length > 0 && String(listaMedellin[0][1]).includes("Código")) 
+        ? listaMedellin.slice(1) 
+        : listaMedellin;
+
+    filasDatos.forEach(i => {
+        htmlMedellin += `<tr>
+            <td>${i[0] || ''}</td>
+            <td>${i[1] || ''}</td>
+            <td>${i[2] || ''}</td>
+            <td>${i[3] || 0}</td>
+            <td>${i[4] || 0}</td>
+            <td>${i[5] || 0}</td>
+            <td>${i[6] || 0}</td>
+            <td><strong>${i[7] || 0}</strong></td>
+            <td>${i[8] || 0}</td>
+            <td><strong style="color:var(--primary);">${i[9] || 0}</strong></td>
+        </tr>`;
+    });
+    
+    document.getElementById('tabla-medellin-box').innerHTML = htmlMedellin + "</table>";
+} catch (errMed) {
+    console.error("Error al renderizar Bodega Medellín:", errMed);
+    document.getElementById('tabla-medellin-box').innerHTML = "<p>Error al cargar inventario de Medellín.</p>";
+}
+        try {
+            let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th></tr>";
+            const listaInsumosPage = data.insumos || [];
+            listaInsumosPage.forEach(is => {
+                htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td><td>${is[4]}</td><td>${is[5]}</td><td><strong>${is[6]}</strong></td></tr>`;
+            });
+            document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
+        } catch (e) {}
+    } catch(e) { console.error("Error general al cargar los datos:", e); }
+}
+        function agregarFilaProducto() {
+            const contenedor = document.getElementById('contenedor-productos');
+            const div = document.createElement('div');
+            div.className = 'product-row';
+            div.innerHTML = `
+                <div><label>Producto</label><input list="lista-productos-datalist" class="row-prod" onchange="actualizarFilaProducto(this)" placeholder="Seleccione producto"></div>
+                <div><label>EAN</label><input type="text" class="row-ean" readonly></div>
+                <div><label>Cant</label><input type="number" class="row-cant" value="1" min="1" oninput="calcularTotalesPedido()"></div>
+                <div><label>V. Unitario</label><input type="number" class="row-vuni" oninput="calcularTotalesPedido()"></div>
+                <div><label>Subtotal</label><input type="number" class="row-subtotal" readonly></div>
+                <div style="padding-bottom: 2px;"><button type="button" class="btn-danger" onclick="this.parentElement.parentElement.remove(); calcularTotalesPedido();">X</button></div>
+            `;
+            contenedor.appendChild(div);
+        }
+
+        function actualizarFilaProducto(inputElement) {
+            const row = inputElement.closest('.product-row');
+            const nombreProd = inputElement.value;
+            const prod = baseDatosProductos.find(x => x[1] === nombreProd);
+            if (prod) {
+                row.querySelector('.row-ean').value = prod[0] || "";
+                row.querySelector('.row-vuni').value = prod[3] || 0;
+                calcularTotalesPedido();
+            }
+        }
+
+        function calcularTotalesPedido() {
+            const filas = document.querySelectorAll('.product-row');
+            let granTotal = 0;
+            filas.forEach(row => {
+                const cant = parseFloat(row.querySelector('.row-cant').value) || 0;
+                const vuni = parseFloat(row.querySelector('.row-vuni').value) || 0;
+                const subtotal = cant * vuni;
+                row.querySelector('.row-subtotal').value = subtotal;
+                granTotal += subtotal;
+            });
+            document.getElementById('gran_total').innerText = granTotal;
+        }
+
+        function autocompletarCliente() {
+            let nombre = document.getElementById('ped_cliente').value;
+            let c = baseDatosClientes.find(cli => cli[0] === nombre);
+            if (c) {
+                document.getElementById('ped_identificacion').value = c[1] || "";
+                document.getElementById('ped_direccion').value = c[2] || "";
+                document.getElementById('ped_telefono').value = c[3] || "";
+                document.getElementById('ped_correo').value = c[4] || "";
+                document.getElementById('ped_ciudad').value = c[5] || "";
+            }
+        }
+
+        async function enviarDatos(datos) {
+            try {
+                await fetch(URL_GOOGLE_SCRIPT, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(datos) 
+                });
+                alert("Operación completada con éxito.");
+                setTimeout(cargarDatosBase, 1500); 
+            } catch (error) { 
+                alert("Ocurrió un error al enviar los datos."); 
+            }
+        }
+
+        function guardarPedido() {
+            const filas = document.querySelectorAll('.product-row');
+            let productosArray = [];
+            filas.forEach(row => {
+                productosArray.push({
+                    producto: row.querySelector('.row-prod').value,
+                    codigoEan: row.querySelector('.row-ean').value,
+                    cantidad: row.querySelector('.row-cant').value,
+                    valorUnitario: row.querySelector('.row-vuni').value,
+                    total: row.querySelector('.row-subtotal').value
+                });
+            });
+            if (productosArray.length === 0 || !productosArray[0].producto) {
+                alert("Debe agregar al menos un producto al pedido.");
+                return;
+            }
+            enviarDatos({
+                accion: "guardar_pedido",
+                numeroPedido: document.getElementById('ped_nro').value,
+                fechaHora: new Date().toLocaleString('es-CO'),
+                nombreCliente: document.getElementById('ped_cliente').value,
+                identificacion: document.getElementById('ped_identificacion').value,
+                sucursal: document.getElementById('ped_sucursal').value,
+                direccion: document.getElementById('ped_direccion').value,
+                telefono: document.getElementById('ped_telefono').value,
+                ciudad: document.getElementById('ped_ciudad').value,
+                correo: document.getElementById('ped_correo').value,
+                estado: document.getElementById('ped_estado').value,
+                vendedor: document.getElementById('ped_vendedor').value,
+                tipoPedido: document.getElementById('ped_tipopedido').value,
+                productosArray: productosArray
+            });
+        }
+
+        function guardarInsumo() {
+            enviarDatos({ 
+                accion: "guardar_insumo", 
+                fechaHora: new Date().toLocaleString('es-CO'), 
+                insumo: document.getElementById('ins_nombre').value, 
+                movimiento: document.getElementById('ins_movimiento').value, 
+                cantidad: document.getElementById('ins_cantidad').value 
+            });
+        }
+
+        async function despacharPedidoCompleto(numPedido, tipoPedido) {
+    // 1. Solicitar o confirmar la bodega de despacho
+    let bodegaSeleccionada = prompt(
+        `📦 DESPACHO DE PEDIDO #${numPedido}\n\n` +
+        `Escribe el nombre de la bodega de origen:\n` +
+        `- Escribe "Principal" (o deja vacío)\n` +
+        `- Escribe "Medellin" para descontar de la bodega de Medellín`,
+        "Principal"
+    );
+
+    if (bodegaSeleccionada === null) return; 
+    bodegaSeleccionada = bodegaSeleccionada.trim() === "" ? "Principal" : bodegaSeleccionada.trim();
+
+    // 2. Ventana de confirmación estricta
+    let mensajeConfirmacion = `⚠️ ADVERTENCIA DE INVENTARIO:\n\n` +
+        `Estás a punto de despachar el pedido #${numPedido}.\n` +
+        `Bodega de origen seleccionada: [ ${bodegaSeleccionada.toUpperCase()} ]\n\n` +
+        `¿Confirmas que esta es la bodega correcta y deseas proceder con el descuento de stock?`;
+
+    let seguro = confirm(mensajeConfirmacion);
+    if (!seguro) return;
+
+    // 3. Ejecutar el envío al backend usando la nomenclatura exacta que espera tu Apps Script
+    try {
+        const respuesta = await fetch(URL_GOOGLE_SCRIPT, {
+            method: "POST",
+            body: JSON.stringify({
+                accion: "despachar_pedido",
+                numeroPedido: numPedido,       // Nombre de variable exacto esperado por el backend
+                bodegaOrigen: bodegaSeleccionada // Nombre de variable exacto esperado por el backend
+            })
+        });
+
+        const resultado = await respuesta.json();
+
+        // Tu servidor responde con "estado": "exito" (línea 173 de tu código)
+        if (resultado.estado === "exito") {
+            alert(`✅ ¡Pedido #${numPedido} despachado con éxito!\nBodega afectada: ${bodegaSeleccionada.toUpperCase()}`);
+            cargarDatosBase(); 
+        } else {
+            alert(`❌ Error al despachar: ${resultado.mensaje || "Respuesta desconocida del servidor."}`);
+        }
+
+    } catch (error) {
+        console.error("Error de red al despachar:", error);
+        alert("❌ Error de conexión al intentar procesar el despacho.");
+    }
+}
+        function iniciarEscanner() {
+            if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 300, height: 150 } },
+                (codigo) => { detenerEscanner(); procesarCodigoEAN(codigo); }, () => {} 
+            ).catch(() => { alert("No se pudo activar la cámara."); });
+        }
+
+        function detenerEscanner() { if (html5QrCode) { html5QrCode.stop().catch(() => {}); } }
+
+        function ingresoManualProducto() {
+            let ean = document.getElementById('manual_prod_select').value;
+            if (ean) { procesarCodigoEAN(ean); } else { alert("Seleccione un producto."); }
+        }
+
+        function procesarCodigoEAN(codigo) {
+            const producto = baseDatosProductos.find(x => String(x[0]) === String(codigo));
+            if (producto) {
+                let movimiento = document.getElementById('scan_movimiento').value;
+                let entradaUsuario = prompt(`Producto: ${producto[1]}\nCantidad para ${movimiento}:`, document.getElementById('scan_cantidad').value);
+                if (entradaUsuario !== null && parseFloat(entradaUsuario) > 0) {
+                    enviarDatos({ 
+                        accion: "guardar_inventario", 
+                        fechaHora: new Date().toLocaleString('es-CO'), 
+                        codigoEan: codigo, 
+                        producto: producto[1], 
+                        movimiento: movimiento, 
+                        cantidad: parseFloat(entradaUsuario) 
+                    });
+                }
+            } else { alert("Código EAN no encontrado."); }
+        }
+
+        function cargarInsumosFetch() {
+            fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_insumos_maestros")
+                .then(res => res.json())
+                .then(lista => {
+                    let options = "";
+                    lista.forEach(i => { options += `<option value="${i}">`; });
+                    document.getElementById('lista-insumos-datalist').innerHTML = options;
+                }).catch(() => {});
+        }
+        
+        function descargarInformeCSV() {
+            alert("Función de descarga en construcción.");
+        }
+        let miGraficoTipos = null;
+
+        function dibujarGraficoTiposPedido(firme, consignacion) {
+            const ctx = document.getElementById('graficoTiposPedido').getContext('2d');
+            if (miGraficoTipos) miGraficoTipos.destroy(); 
+            
+            miGraficoTipos = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Pedidos en Firme', 'Consignaciones'],
+                    datasets: [{
+                        label: 'Valor Total ($)',
+                        data: [firme, consignacion],
+                        backgroundColor: ['#5b21b6', '#0ea5e9'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        let miGraficoClientesFirme = null;
+        let miGraficoClientesConsignacion = null;
+
+        function dibujarGraficoClientesFirme(ventasPorCliente) {
+            const ctx = document.getElementById('graficoClientesFirme').getContext('2d');
+            if (miGraficoClientesFirme) miGraficoClientesFirme.destroy();
+            
+            let labels = Object.keys(ventasPorCliente);
+            let datos = Object.values(ventasPorCliente);
+            let colores = labels.map((_, i) => `hsl(${i * (360 / Math.max(labels.length, 1))}, 70%, 55%)`);
+            
+            miGraficoClientesFirme = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: datos,
+                        backgroundColor: colores,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } }
+                }
+            });
+        }
+
+        function dibujarGraficoClientesConsignacion(ventasPorCliente) {
+            const ctx = document.getElementById('graficoClientesConsignacion').getContext('2d');
+            if (miGraficoClientesConsignacion) miGraficoClientesConsignacion.destroy();
+            
+            let labels = Object.keys(ventasPorCliente);
+            let datos = Object.values(ventasPorCliente);
+            let colores = labels.map((_, i) => `hsl(${i * (360 / Math.max(labels.length, 1))}, 40%, 65%)`);
+            
+            miGraficoClientesConsignacion = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: datos,
+                        backgroundColor: colores,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } }
+                }
+            });
+        }
+        function renderizarTablaConsignaciones() {
+    let contenedor = document.getElementById("tabla-consignaciones-box");
+    if (!baseDatosConsignaciones || baseDatosConsignaciones.length === 0) {
+        contenedor.innerHTML = "<p style='padding:15px; text-align:center;'>No hay datos de consignaciones o están cargando...</p>";
+        return;
+    }
+
+    // 1. Cargar el filtro de clientes dinámicamente
+    let selectCliente = document.getElementById("filtro-cliente-consignacion");
+    let clienteSeleccionado = selectCliente.value;
+    
+    if (selectCliente.options.length <= 1) { 
+        let clientesUnicos = [...new Set(baseDatosConsignaciones.map(f => f[10]).filter(c => c))];
+        clientesUnicos.forEach(c => {
+            let opt = document.createElement("option");
+            opt.value = c;
+            opt.text = c;
+            selectCliente.appendChild(opt);
+        });
+    }
+
+    // 2. Construir la tabla con la estructura exacta que solicitaste
+    let html = `<table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Cód. EAN 13</th>
+                <th>Producto</th>
+                <th>Inv. Inicial</th>
+                <th>Entradas</th>
+                <th>Salidas</th>
+                <th>Salidas D</th>
+                <th>Saldo Actual</th>
+                <th>En pedido</th>
+                <th>Disponible</th>
+                <th>Cliente/Bodega</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+    baseDatosConsignaciones.forEach(fila => {
+        let clienteFila = fila[10];
+        // Aplicar el filtro según el desplegable
+        if (clienteSeleccionado === "TODOS" || clienteFila === clienteSeleccionado) {
+            html += `<tr>
+                <td>${fila[0] || ''}</td>
+                <td>${fila[1] || ''}</td>
+                <td>${fila[2] || ''}</td>
+                <td>${fila[3] || 0}</td>
+                <td style='color:green; font-weight:bold;'>${fila[4] || 0}</td>
+                <td style='color:red;'>${fila[5] || 0}</td>
+                <td>${fila[6] || 0}</td>
+                <td style='font-weight:bold;'>${fila[7] || 0}</td>
+                <td>${fila[8] || 0}</td>
+                <td style='color:#5b21b6; font-weight:bold;'>${fila[9] || 0}</td>
+                <td>${clienteFila || ''}</td>
+            </tr>`;
+        }
+    });
+
+    html += `</tbody></table>`;
+    contenedor.innerHTML = html;
+           
+}
+        cargarDatosBase().catch(err => {
+    console.error("Error no controlado en la carga inicial:", err);
+}); 
+    </script>
+</body>
+</html>
