@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Impulsos - ARANDANOS DE VIDA</title>
+    <style>
+        :root {
+            --primary: #16a34a;
+            --primary-hover: #15803d;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --border: #d1d5db;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 1rem;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        .card {
+            max-width: 450px;
+            margin: 2rem auto;
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-top: 4px solid var(--primary);
+        }
+        .logo-cliente {
+            max-width: 140px;
+            height: auto;
+            display: block;
+            margin: 0 auto 1rem auto;
+        }
+        .logo-dev {
+            max-width: 110px;
+            height: auto;
+            display: block;
+            margin: 2rem auto 0.5rem auto;
+            opacity: 0.85;
+        }
+        .dev-text {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #9ca3af;
+            margin-bottom: 0;
+        }
+        h2 { margin-top: 0; font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-main); text-align: center; }
+        h3 { font-size: 1.1rem; color: var(--primary); margin-top: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; }
+        label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.25rem; margin-top: 0.75rem; }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            box-sizing: border-box;
+            font-size: 1rem;
+            background-color: #f9fafb;
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.25rem;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            margin-top: 1rem;
+            background-color: var(--primary);
+        }
+        button:hover { background-color: var(--primary-hover); }
+        .btn-outline {
+            background-color: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #bfdbfe;
+            margin-bottom: 0.5rem;
+        }
+        .hidden { display: none !important; }
+        #gps-data { font-size: 0.75rem; text-align: center; color: #6b7280; margin-bottom: 1rem; }
+        .user-info { font-size: 0.875rem; color: #4b5563; margin-bottom: 1rem; text-align: center; font-weight: bold; }
+        /* --- ESTILOS DEL PANEL ADMINISTRATIVO DESDE CERO --- */
+        .admin-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .admin-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .admin-title {
+            color: #4338ca;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-danger:hover { background-color: #dc2626; }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        .btn-primary:hover { background-color: #4338ca; }
+
+        /* Contenedor de la tabla con Scroll */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+            text-align: left;
+        }
+        .custom-table th, .custom-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            border-right: 1px solid #f3f4f6;
+        }
+        .custom-table th {
+            font-size: 0.85rem;
+            color: #334155;
+        }
+        .th-group {
+            background-color: #e2e8f0;
+            text-align: center;
+            font-weight: bold;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        .th-sub {
+            background-color: #f8fafc;
+            font-weight: 600;
+        }
+        .custom-table tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+        .td-center { text-align: center; font-weight: 500; }
+        .td-highlight { text-align: center; font-weight: bold; color: #4338ca; background-color: #eef2ff; }
+
+        /* Etiquetas y Botones pequeños */
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: inline-block;
+            border: 1px solid transparent;
+        }
+        .badge-success { background-color: #dcfce7; color: #166534; border-color: #bbf7d0; }
+        .badge-warning { background-color: #fef08a; color: #854d0e; border-color: #fde047; }
+        .btn-link {
+            background-color: #e0e7ff;
+            color: #4338ca;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+        .btn-link:hover { background-color: #c7d2fe; }
+        .obs-box {
+            background-color: #f8fafc;
+            padding: 6px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <!-- Pantalla de Login -->
+    <div id="login-screen" class="card">
+        <img src="https://static.wixstatic.com/media/d0ce54_b23afa43d81f430dbe1c219e3f470f11~mv2.jpg" alt="Logo Cliente" class="logo-cliente">
+        <h2>Acceso Impulsadores</h2>
+        <input type="text" id="user" placeholder="Usuario">
+        <input type="password" id="pass" placeholder="Contraseña">
+        <button onclick="login()">Ingresar</button>
+        
+        <p class="dev-text">Desarrollado por</p>
+        <img src="https://static.wixstatic.com/media/d0ce54_c999d1aa9976438a98b0f5b2157b7adc~mv2.png" alt="Logo Desarrollador" class="logo-dev">
+    </div>
+
+    <!-- Pantalla de Panel Administrativo desde Cero -->
+    <div id="admin-screen" class="admin-container hidden">
+        <div class="admin-header-flex">
+            <h2 class="admin-title">Panel de Control de Impulsos</h2>
+            <div>
+                <span id="admin-user-display" style="margin-right: 15px; font-weight: bold; color: #475569;"></span>
+                <button onclick="cerrarSesion()" class="btn-danger">Cerrar Sesión</button>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <!-- Agrupación Superior -->
+                    <tr>
+                        <th class="th-group">Datos Generales</th>
+                        <th class="th-group" colspan="5">Inventario Inicial</th>
+                        <th class="th-group" colspan="2">Resultados</th>
+                        <th class="th-group" colspan="3">Inventario Final</th>
+                        <th class="th-group">Evidencias</th>
+                    </tr>
+                    <!-- Subtítulos -->
+                    <tr>
+                        <th class="th-sub">Tienda / Usuario / Fecha</th>
+                        <th class="th-sub td-center">Pq (130)</th>
+                        <th class="th-sub td-center">Md (250)</th>
+                        <th class="th-sub td-center">Gr (500)</th>
+                        <th class="th-sub td-center">Cucharas</th>
+                        <th class="th-sub td-center">Vasos</th>
+                        <th class="th-sub td-center">Degust.</th>
+                        <th class="th-sub td-center">Ventas</th>
+                        <th class="th-sub td-center">Pq (130)</th>
+                        <th class="th-sub td-center">Md (250)</th>
+                        <th class="th-sub td-center">Gr (500)</th>
+                        <th class="th-sub">Fotos y Notas</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-registros-body">
+                    <!-- Registros dinámicos -->
+                </tbody>
+            </table>
+        </div>
+        <button onclick="cargarRegistrosAdmin()" class="btn-primary">Actualizar Tabla</button>
+    </div>
+
+    <!-- Pantalla Principal -->
+    <div id="app-screen" class="card hidden">
+        <img src="https://static.wixstatic.com/media/d0ce54_b23afa43d81f430dbe1c219e3f470f11~mv2.jpg" alt="Logo Cliente" class="logo-cliente">
+        <h2>Registro de Impulso</h2>
+        <div id="user-display" class="user-info"></div>
+
+        <label>Seleccionar Acción</label>
+        <select id="tipo_accion" onchange="cambiarModoAccion()">
+            <option value="inicio">Inicio de Turno</option>
+            <option value="final">Final de Turno</option>
+        </select>
+
+        <label>Seleccionar Cliente / Tienda</label>
+        <select id="select_cliente">
+            <option value="">Cargando clientes...</option>
+        </select>
+
+        <button type="button" onclick="capturarGPS()" class="btn-outline">📍 Capturar Coordenada GPS</button>
+        <p id="gps-data">GPS no capturado</p>
+
+        <label id="label-foto">Evidencia Fotográfica (Inicio)</label>
+        <input type="file" accept="image/*" capture="environment" id="cameraInput">
+
+        <!-- Campos dinámicos para INICIO -->
+        <div id="seccion-inicio">
+            <label>Concentrado Pequeño (130ml)</label>
+            <input type="number" id="cant_pequeno" value="0" min="0">
+            
+            <label>Concentrado Mediano (250ml)</label>
+            <input type="number" id="cant_mediano" value="0" min="0">
+            
+            <label>Concentrado Grande (500ml)</label>
+            <input type="number" id="cant_grande" value="0" min="0">
+            
+            <label>Cucharas</label>
+            <input type="number" id="cant_cucharas" value="0" min="0">
+            
+            <label>Vasos</label>
+            <input type="number" id="cant_vasos" value="0" min="0">
+        </div>
+
+        <!-- Campos dinámicos para FINAL -->
+        <div id="seccion-final" class="hidden">
+            <h3>Gasto de ARANDANOS DE VIDA</h3>
+            <label>Gasto Concentrado Pequeño (130ml)</label>
+            <input type="number" id="gasto_pequeno" value="0" min="0">
+            
+            <label>Gasto Concentrado Mediano (250ml)</label>
+            <input type="number" id="gasto_mediano" value="0" min="0">
+            
+            <label>Gasto Concentrado Grande (500ml)</label>
+            <input type="number" id="gasto_grande" value="0" min="0">
+
+            <h3>Resultados del Turno</h3>
+            <label>Cantidad de Degustaciones Realizadas</label>
+            <input type="number" id="degustaciones" value="0" min="0">
+            
+            <label>Cantidad de Ventas Realizadas</label>
+            <input type="number" id="ventas" value="0" min="0">
+
+            <label>Observaciones</label>
+            <textarea id="observaciones" placeholder="Comentarios adicionales..."></textarea>
+        </div>
+
+        <button id="btnGuardar" onclick="guardarRegistro()">Guardar e Enviar</button>
+
+        <p class="dev-text">Desarrollado por</p>
+        <img src="https://static.wixstatic.com/media/d0ce54_c999d1aa9976438a98b0f5b2157b7adc~mv2.png" alt="Logo Desarrollador" class="logo-dev">
+    </div>
+
+    <script>
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzetiv4-_RmnwXvNZgs6x72-TfIYXDzaJUVvwNgJGsxJOjp6jmpaeXhnqgMkX1EbmtPhw/exec"; 
+        let currentUser = "";
+        let latitud = "";
+        let longitud = "";
+
+        async function login() {
+            const usuario = document.getElementById('user').value.trim();
+            const clave = document.getElementById('pass').value.trim();
+            
+            if (!navigator.onLine) {
+                alert("No tienes conexión a internet. Por favor, revisa tu Wi-Fi o datos móviles para ingresar.");
+                return;
+            }
+
+            if (!usuario || !clave) {
+                alert("Por favor completa usuario y contraseña.");
+                return;
+            }
+
+            try {
+                let response = await fetch(`${WEB_APP_URL}?action=login&usuario=${encodeURIComponent(usuario)}&clave=${encodeURIComponent(clave)}`);
+                let result = await response.json(); 
+
+                if (result.success) {
+                    currentUser = usuario;
+                    const rol = result.rol; 
+                    
+                    localStorage.setItem("user", usuario);
+                    localStorage.setItem("rol", rol);
+                    
+                    document.getElementById("login-screen").classList.add("hidden");
+
+                    if (rol.toLowerCase() === "administrador" || rol.toLowerCase() === "admin") {
+                        document.getElementById("admin-screen").classList.remove("hidden");
+                        document.getElementById("admin-user-display").innerText = `Administrador: ${currentUser}`;
+                        cargarRegistrosAdmin();
+                    } else {
+                        document.getElementById("app-screen").classList.remove("hidden");
+                        document.getElementById("user-display").innerText = `Usuario: ${currentUser} (${rol})`;
+                        cargarClientes(); 
+                    }
+                } else {
+                    alert(result.error);
+                }
+            } catch (error) {
+                alert("Error de conexión: " + error.message);
+            }
+        }
+
+        async function cargarRegistrosAdmin() {
+    const tbody = document.getElementById("tabla-registros-body");
+    tbody.innerHTML = `<tr><td colspan="12" class="td-center" style="padding: 2rem; color: #64748b;">Consultando datos en la nube...</td></tr>`;
+    try {
+        const response = await fetch(`${WEB_APP_URL}?action=getRegistros`);
+        const result = await response.json();
+        if (result.success) {
+            tbody.innerHTML = "";
+            if (result.registros.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="12" class="td-center" style="padding: 2rem; color: #64748b;">No hay registros disponibles aún.</td></tr>`;
+                return;
+            }
+            result.registros.reverse().forEach(reg => {
+                let tr = document.createElement("tr");
+                
+                let estadoBadge = reg.estado === 'Completado' 
+                    ? `<span class="badge badge-success">✅ Completado</span>` 
+                    : `<span class="badge badge-warning">⏳ ${reg.estado}</span>`;
+                
+                // Muestra la hora de finalización o "En proceso..." si el turno sigue abierto
+                let horaFinalTexto = reg.fechaFinal ? reg.fechaFinal : "En proceso...";
+
+                tr.innerHTML = `
+                    <td style="min-width: 220px;">
+                        <div style="font-weight: bold; color: #1e293b; margin-bottom: 4px;">${reg.tienda}</div>
+                        <div style="font-size: 0.8rem; color: #475569;">👤 ${reg.usuario}</div>
+                        <div style="font-size: 0.78rem; color: #16a34a; margin-top: 4px;">🟢 <b>Inicio:</b> ${reg.fecha}</div>
+                        <div style="font-size: 0.78rem; color: #dc2626; margin-bottom: 8px;">🔴 <b>Fin:</b> ${horaFinalTexto}</div>
+                        ${estadoBadge}
+                    </td>
+                    
+                    <td class="td-center">${reg.invPequeno}</td>
+                    <td class="td-center">${reg.invMediano}</td>
+                    <td class="td-center">${reg.invGrande}</td>
+                    <td class="td-center">${reg.cucharas}</td>
+                    <td class="td-center">${reg.vasos}</td>
+                    
+                    <td class="td-center">${reg.degustaciones}</td>
+                    <td class="td-highlight">${reg.ventas}</td>
+                    
+                    <td class="td-center">${reg.finPequeno}</td>
+                    <td class="td-center">${reg.finMediano}</td>
+                    <td class="td-center">${reg.finGrande}</td>
+                    
+                    <td style="min-width: 180px;">
+                        <div>
+                            ${reg.fotoInicio ? `<a href="${reg.fotoInicio}" target="_blank" class="btn-link">📸 Inicio</a>` : '<span style="font-size:0.75rem; color:#94a3b8;">Sin foto inicial</span>'}
+                            ${reg.fotoFinal ? `<a href="${reg.fotoFinal}" target="_blank" class="btn-link">📸 Fin</a>` : ''}
+                        </div>
+                        ${reg.observaciones ? `<div class="obs-box" style="margin-top: 8px;" title="${reg.observaciones}">📝 ${reg.observaciones}</div>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            alert("Error al cargar los datos administrativos: " + result.error);
+        }
+    } catch (error) {
+        console.error("Error de conexión:", error);
+        tbody.innerHTML = `<tr><td colspan="12" class="td-center" style="padding: 2rem; color: #ef4444; font-weight:bold;">Error de conexión con el servidor.</td></tr>`;
+    }
+}
+        function cerrarSesion() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        async function cargarClientes() {
+            try {
+                let response = await fetch(`${WEB_APP_URL}?action=getClientes`);
+                let result = await response.json();
+
+                if (result.success) {
+                    let select = document.getElementById('select_cliente');
+                    select.innerHTML = '<option value="">-- Seleccione un Distribuidor --</option>';
+                    result.clientes.forEach(c => {
+                        let option = document.createElement('option');
+                        option.value = c.nombre;
+                        option.textContent = `${c.nombre} (${c.ciudad})`;
+                        select.appendChild(option);
+                    });
+                } else {
+                    alert("No se pudieron cargar los clientes.");
+                }
+            } catch (error) {
+                console.error("Error cargando clientes:", error);
+            }
+        }
+
+        function cambiarModoAccion() {
+            let modo = document.getElementById('tipo_accion').value;
+            if (modo === "inicio") {
+                document.getElementById('seccion-inicio').classList.remove('hidden');
+                document.getElementById('seccion-final').classList.add('hidden');
+                document.getElementById('label-foto').innerText = "Evidencia Fotográfica (Inicio)";
+            } else {
+                document.getElementById('seccion-inicio').classList.add('hidden');
+                document.getElementById('seccion-final').classList.remove('hidden');
+                document.getElementById('label-foto').innerText = "Evidencia Fotográfica (Final / Cierre)";
+            }
+        }
+
+        function capturarGPS() {
+            if (!navigator.geolocation) {
+                alert("La geolocalización no es compatible en este navegador.");
+                return;
+            }
+
+            const gpsDataElement = document.getElementById('gps-data');
+            gpsDataElement.innerText = "Obteniendo ubicación... por favor espera.";
+
+            const opcionesGPS = {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
+            };
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    latitud = position.coords.latitude;
+                    longitud = position.coords.longitude;
+                    gpsDataElement.innerText = `Lat: ${latitud.toFixed(6)}, Lon: ${longitud.toFixed(6)}`;
+                    alert("📍 Ubicación capturada con éxito.");
+                },
+                (error) => {
+                    let mensajeError = "Error desconocido.";
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            mensajeError = "Permiso denegado. Debes autorizar el uso del GPS en el navegador de tu celular.";
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            mensajeError = "Ubicación no disponible. Verifica que la opción 'Ubicación' o 'GPS' del celular esté encendida.";
+                            break;
+                        case error.TIMEOUT:
+                            mensajeError = "Tiempo agotado. El GPS está tardando demasiado. Intenta acercarte a una ventana o al aire libre.";
+                            break;
+                    }
+                    alert("Fallo al obtener ubicación: " + mensajeError);
+                    gpsDataElement.innerText = "No se pudo obtener la ubicación ❌";
+                },
+                opcionesGPS
+            );
+        }
+
+        async function guardarRegistro() {
+    if (!navigator.onLine) {
+        alert("Estás sin conexión a internet. Conéctate a una red para guardar y enviar este registro.");
+        return;
+    }
+    let modo = document.getElementById('tipo_accion').value;
+    let tienda = document.getElementById('select_cliente').value;
+    let fileInput = document.getElementById('cameraInput');
+    
+    if (!tienda) {
+        alert("Selecciona un cliente o distribuidor.");
+        return;
+    }
+    
+    if (fileInput.files.length === 0) {
+        alert("La fotografía es obligatoria.");
+        return;
+    }
+    
+    let btnGuardar = document.getElementById('btnGuardar');
+    if (btnGuardar) {
+        btnGuardar.disabled = true;
+        btnGuardar.innerText = "Enviando... por favor espera ⏳";
+        btnGuardar.style.opacity = "0.7";
+        btnGuardar.style.cursor = "not-allowed";
+    }
+    
+    let file = fileInput.files[0];
+    let reader = new FileReader();
+    
+    reader.onload = function(event) {
+        // Crear un objeto de imagen para procesarla en un Canvas
+        let img = new Image();
+        img.onload = async function() {
+            let canvas = document.createElement("canvas");
+            let ctx = canvas.getContext("2d");
+            
+            // Asignar el tamaño original de la foto al canvas
+            canvas.width = img.width;
+            canvas.height = img.height;
+            
+            // Dibujar la foto original
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            // Configurar el estilo del texto (Marca de agua)
+            let fontSize = Math.max(30, Math.floor(canvas.width / 30)); // Tamaño adaptable
+            ctx.font = `bold ${fontSize}px Arial`;
+            ctx.fillStyle = "yellow"; // Letra amarilla
+            ctx.strokeStyle = "black"; // Borde negro para que resalte
+            ctx.lineWidth = 3;
+            
+            let timestampStr = new Date().toLocaleString();
+            let textoEstampa = `Fecha: ${timestampStr} | Impulsador: ${currentUser}`;
+            
+            // Posicionar el texto en la parte inferior izquierda
+            let margin = 20;
+            let x = margin;
+            let y = canvas.height - margin;
+            
+            // Dibujar borde y luego el texto
+            ctx.strokeText(textoEstampa, x, y);
+            ctx.fillText(textoEstampa, x, y);
+            
+            // Convertir el canvas modificado a Base64
+            let fotoBase64 = canvas.toDataURL("image/jpeg", 0.85);
+            
+            // Preparar el payload con la foto estampada
+            let payload = {
+                action: modo === "inicio" ? "registrar_inicio" : "registrar_final",
+                usuario: currentUser,
+                tienda: tienda,
+                latitud: latitud,
+                longitud: longitud,
+                timestamp: timestampStr,
+                fotoBase64: fotoBase64
+            };
+            
+            if (modo === "inicio") {
+                payload.pequeno = document.getElementById('cant_pequeno').value;
+                payload.mediano = document.getElementById('cant_mediano').value;
+                payload.grande = document.getElementById('cant_grande').value;
+                payload.cucharas = document.getElementById('cant_cucharas').value;
+                payload.vasos = document.getElementById('cant_vasos').value;
+            } else {
+                payload.gasto_pequeno = document.getElementById('gasto_pequeno').value;
+                payload.gasto_mediano = document.getElementById('gasto_mediano').value;
+                payload.gasto_grande = document.getElementById('gasto_grande').value;
+                payload.degustaciones = document.getElementById('degustaciones').value;
+                payload.ventas = document.getElementById('ventas').value;
+                payload.observaciones = document.getElementById('observaciones').value;
+            }
+            
+            try {
+                let response = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+                let result = await response.json();
+                if (result.success) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert("Error: " + result.error);
+                    if (btnGuardar) {
+                        btnGuardar.disabled = false;
+                        btnGuardar.innerText = "Guardar e Enviar";
+                        btnGuardar.style.opacity = "1";
+                        btnGuardar.style.cursor = "pointer";
+                    }
+                }
+            } catch (error) {
+                alert("Error al enviar los datos: " + error.message);
+                if (btnGuardar) {
+                    btnGuardar.disabled = false;
+                    btnGuardar.innerText = "Guardar e Enviar";
+                    btnGuardar.style.opacity = "1";
+                    btnGuardar.style.cursor = "pointer";
+                }
+            }
+        };
+        // Cargar la imagen en el objeto Image
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+    </script>
+</body>
+</html>
