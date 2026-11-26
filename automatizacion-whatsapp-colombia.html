@@ -1,64 +1,647 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bot-On | Automatización de WhatsApp con IA en Colombia</title>
-    <meta name="description" content="Bot-On ayuda a las pymes en Colombia a automatizar sus ventas por WhatsApp, gestionar pedidos, atender PQRS y recibir notificaciones al instante con inteligencia artificial.">
-    <style>
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f9fafb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            color: #1f2937;
-            text-align: center;
-        }
-        .container {
-            background-color: #ffffff;
-            padding: 50px 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-            max-width: 600px;
-            width: 90%;
-        }
-        .logo {
-            width: 160px;
-            margin: 0 auto 25px auto;
-            display: block;
-        }
-        h1 { font-size: 32px; font-weight: 800; margin-bottom: 25px; color: #111827; line-height: 1.2; }
-        p { font-size: 18px; margin-bottom: 20px; color: #4b5563; }
-        .btn {
-            display: inline-block;
-            background-color: #16a34a;
-            color: #ffffff;
-            font-weight: bold;
-            text-decoration: none;
-            padding: 16px 36px;
-            border-radius: 50px;
-            font-size: 20px;
-            margin-top: 25px;
-            transition: background-color 0.3s ease;
-            box-shadow: 0 4px 6px rgba(22, 163, 74, 0.3);
-        }
-        .btn:hover { background-color: #15803d; transform: translateY(-2px); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Automatización de WhatsApp con IA para Empresas | Bot-On</title>
+  <meta name="description" content="Automatiza la atención de clientes por WhatsApp con Gemini. Bot-On ayuda a gestionar pedidos y centralizar sus datos y comprobantes en el CRM.">
+
+  <link rel="canonical" href="https://bot-on.online/automatizacion-whatsapp-colombia.html">
+  <meta name="robots" content="index,follow">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Bot-On | Automatización de WhatsApp con IA">
+  <meta property="og:description" content="Conversa con tus clientes mediante IA y organiza los pedidos y sus soportes en tu CRM.">
+  <meta property="og:url" content="https://bot-on.online/automatizacion-whatsapp-colombia.html">
+  <meta property="og:image" content="https://static.wixstatic.com/media/d0ce54_c999d1aa9976438a98b0f5b2157b7adc~mv2.png">
+
+  <meta name="theme-color" content="#101827">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": "https://bot-on.online/automatizacion-whatsapp-colombia.html#service",
+    "name": "Automatización de WhatsApp con inteligencia artificial",
+    "serviceType": "Automatización de atención al cliente y gestión de pedidos por WhatsApp",
+    "url": "https://bot-on.online/automatizacion-whatsapp-colombia.html",
+    "description": "Solución de automatización comercial que utiliza Gemini para conversar con clientes y facilita el registro de pedidos y la asociación de imágenes de comprobantes con los datos correspondientes en un CRM.",
+    "provider": {
+      "@type": "Organization",
+      "name": "Bot-On",
+      "url": "https://bot-on.online/"
+    },
+    "areaServed": {
+      "@type": "Country",
+      "name": "Colombia"
+    }
+  }
+  </script>
+
+  <style>
+    :root {
+      --dark: #101827;
+      --dark-soft: #192538;
+      --green: #16a34a;
+      --green-light: #dcfce7;
+      --text: #253247;
+      --muted: #64748b;
+      --white: #ffffff;
+      --light: #f6f8fb;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      line-height: 1.65;
+      background: var(--white);
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .container {
+      width: min(1100px, 92%);
+      margin: 0 auto;
+    }
+
+    .header {
+      background: var(--dark);
+      color: var(--white);
+      padding: 18px 0;
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      width: 140px;
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .nav-link {
+      color: #e2e8f0;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #101827, #20334a);
+      color: var(--white);
+      padding: 82px 0 88px;
+    }
+
+    .hero-content {
+      max-width: 800px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      color: #bbf7d0;
+      background: rgba(22, 163, 74, 0.16);
+      border: 1px solid rgba(134, 239, 172, 0.3);
+      border-radius: 30px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-size: clamp(34px, 5vw, 56px);
+      line-height: 1.12;
+      letter-spacing: -1.3px;
+      margin: 0 0 22px;
+    }
+
+    .hero p {
+      font-size: 19px;
+      color: #dbe5f0;
+      max-width: 720px;
+      margin: 0 0 28px;
+    }
+
+    .button {
+      display: inline-block;
+      background: var(--green);
+      color: var(--white);
+      padding: 15px 24px;
+      border-radius: 9px;
+      text-decoration: none;
+      font-weight: 700;
+      transition: background 0.2s ease;
+    }
+
+    .button:hover {
+      background: #15803d;
+    }
+
+    .button-secondary {
+      display: inline-block;
+      color: var(--white);
+      border: 1px solid #64748b;
+      padding: 14px 22px;
+      border-radius: 9px;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .button-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    section {
+      padding: 68px 0;
+    }
+
+    .section-light {
+      background: var(--light);
+    }
+
+    .section-heading {
+      max-width: 760px;
+      margin: 0 auto 36px;
+      text-align: center;
+    }
+
+    h2 {
+      color: var(--dark);
+      font-size: clamp(27px, 4vw, 38px);
+      line-height: 1.2;
+      margin: 0 0 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+      font-size: 17px;
+      margin: 0;
+    }
+
+    h3 {
+      color: var(--dark);
+      line-height: 1.3;
+      margin-top: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 27px;
+    }
+
+    .card p {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: var(--green-light);
+      font-size: 23px;
+      margin-bottom: 19px;
+    }
+
+    .two-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 44px;
+      align-items: start;
+    }
+
+    .check-list {
+      padding: 0;
+      margin: 22px 0 0;
+      list-style: none;
+    }
+
+    .check-list li {
+      position: relative;
+      padding: 0 0 14px 30px;
+    }
+
+    .check-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    .note {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      padding: 20px;
+      color: #166534;
+      margin-top: 22px;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 22px;
+      counter-reset: step;
+    }
+
+    .step {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 25px;
+      counter-increment: step;
+    }
+
+    .step::before {
+      content: counter(step);
+      display: flex;
+      width: 36px;
+      height: 36px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--dark);
+      color: var(--white);
+      font-weight: 700;
+      margin-bottom: 17px;
+    }
+
+    .step p {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .faq {
+      max-width: 850px;
+      margin: 0 auto;
+    }
+
+    details {
+      border-bottom: 1px solid var(--border);
+      padding: 21px 0;
+    }
+
+    summary {
+      color: var(--dark);
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    details p {
+      color: var(--muted);
+      margin-bottom: 0;
+      padding-top: 12px;
+    }
+
+    .cta {
+      background: var(--dark);
+      color: var(--white);
+      text-align: center;
+    }
+
+    .cta h2 {
+      color: var(--white);
+    }
+
+    .cta p {
+      color: #dbe5f0;
+      max-width: 650px;
+      margin: 0 auto 25px;
+    }
+
+    .footer {
+      background: #0b1220;
+      color: #cbd5e1;
+      padding: 27px 0;
+      font-size: 13px;
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer a {
+      color: #cbd5e1;
+    }
+
+    @media (max-width: 760px) {
+      .hero {
+        padding: 58px 0 64px;
+      }
+
+      .grid,
+      .two-columns,
+      .steps {
+        grid-template-columns: 1fr;
+      }
+
+      section {
+        padding: 52px 0;
+      }
+
+      .card {
+        padding: 23px;
+      }
+
+      .button-row {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .button,
+      .button-secondary {
+        text-align: center;
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <img src="https://static.wixstatic.com/media/d0ce54_c999d1aa9976438a98b0f5b2157b7adc~mv2.png" alt="Logo Bot-On" class="logo">
-        <h1>Automatización de Ventas por WhatsApp para Pymes en Colombia</h1>
-        <p><strong>¿Pierdes clientes por no responder en horas pico?</strong></p>
-        <p><strong>¿Te da pereza pasar datos de WhatsApp a Excel?</strong></p>
-        <p>Bot-On es una solución de automatización comercial por WhatsApp con inteligencia artificial. Te ayuda a gestionar pedidos, atender PQRS y recibir notificaciones al instante.</p>
-        
-        <a href="https://wa.me/573052926015?text=Hola,%20quiero%20automatizar%20mis%20ventas" class="btn">
-           PRUÉBALO AHORA
-        </a>
+  <header class="header">
+    <div class="container header-inner">
+      <a href="https://bot-on.online/" aria-label="Bot-On, página principal">
+        <img
+          src="https://static.wixstatic.com/media/d0ce54_c999d1aa9976438a98b0f5b2157b7adc~mv2.png"
+          alt="Logotipo de Bot-On"
+          class="logo">
+      </a>
+
+      <a class="nav-link" href="#como-funciona">Cómo funciona</a>
     </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <span class="eyebrow">Inteligencia artificial para empresas</span>
+
+          <h1>Automatiza la atención y la gestión de pedidos por WhatsApp</h1>
+
+          <p>
+            Bot-On utiliza inteligencia artificial de Gemini para conversar
+            con tus clientes y facilitar la gestión de pedidos. Centraliza
+            los datos y los soportes enviados por WhatsApp en tu CRM.
+          </p>
+
+          <div class="button-row">
+            <a
+              class="button"
+              href="https://wa.me/573052926015?text=Hola,%20quiero%20automatizar%20mis%20ventas">
+              Quiero conocer Bot-On
+            </a>
+
+            <a class="button-secondary" href="#como-funciona">
+              Conocer cómo funciona
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-heading">
+          <h2>Menos tareas manuales, mejor organización comercial</h2>
+          <p>
+            Cuando las conversaciones, los pedidos y los soportes quedan
+            dispersos, hacer seguimiento a cada cliente puede ser complicado.
+            Bot-On conecta la conversación por WhatsApp con el registro de
+            información en el CRM.
+          </p>
+        </div>
+
+        <div class="grid">
+          <article class="card">
+            <div class="icon" aria-hidden="true">💬</div>
+            <h3>Conversaciones con inteligencia artificial</h3>
+            <p>
+              Utiliza Gemini para conversar con tus clientes y atender sus
+              solicitudes mediante un intercambio de mensajes más natural.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="icon" aria-hidden="true">📋</div>
+            <h3>Pedidos organizados en el CRM</h3>
+            <p>
+              Centraliza los datos del pedido para facilitar la consulta
+              de la información y el seguimiento comercial.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="icon" aria-hidden="true">🧾</div>
+            <h3>Imágenes de comprobantes asociadas al pedido</h3>
+            <p>
+              Recibe las imágenes que envían los clientes y adjúntalas
+              junto con los datos correspondientes en el CRM.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-light" id="como-funciona">
+      <div class="container">
+        <div class="section-heading">
+          <h2>¿Cómo funciona la automatización de WhatsApp con Bot-On?</h2>
+          <p>
+            La conversación y el registro de información forman parte
+            de un mismo proceso comercial.
+          </p>
+        </div>
+
+        <div class="steps">
+          <article class="step">
+            <h3>El cliente inicia una conversación</h3>
+            <p>
+              El cliente escribe por WhatsApp y conversa con el asistente
+              de inteligencia artificial de Gemini.
+            </p>
+          </article>
+
+          <article class="step">
+            <h3>Se gestionan los datos del pedido</h3>
+            <p>
+              La información correspondiente al pedido se organiza
+              y se registra en el CRM.
+            </p>
+          </article>
+
+          <article class="step">
+            <h3>Se adjuntan los soportes recibidos</h3>
+            <p>
+              Si el cliente envía una imagen de un comprobante, esta se
+              recibe y se asocia con los datos del pedido en el CRM.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container two-columns">
+        <div>
+          <h2>Una solución para organizar la atención comercial</h2>
+          <p>
+            Bot-On está orientado a empresas que reciben consultas y pedidos
+            por WhatsApp y necesitan organizar mejor la información de sus
+            clientes.
+          </p>
+
+          <ul class="check-list">
+            <li>Conversaciones asistidas por inteligencia artificial.</li>
+            <li>Registro centralizado de información de pedidos.</li>
+            <li>Recepción y asociación de imágenes con sus pedidos.</li>
+            <li>Consulta de los datos desde el CRM.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>¿Qué pasa con los comprobantes de pago?</h3>
+          <p>
+            Bot-On recibe la imagen enviada por el cliente y la adjunta
+            junto con los datos del pedido en el CRM.
+          </p>
+
+          <div class="note">
+            <strong>Importante:</strong> la recepción de la imagen no significa
+            que Bot-On lea su contenido ni que verifique automáticamente
+            si el pago fue realizado. Esa comprobación debe efectuarse
+            mediante el proceso de revisión correspondiente.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-light">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Preguntas frecuentes sobre Bot-On</h2>
+          <p>
+            Conoce qué hace la solución y cómo se gestiona la información.
+          </p>
+        </div>
+
+        <div class="faq">
+          <details>
+            <summary>¿Qué es Bot-On?</summary>
+            <p>
+              Bot-On es una solución de automatización comercial por
+              WhatsApp que utiliza inteligencia artificial de Gemini para
+              conversar con clientes y facilitar la gestión de pedidos
+              mediante un CRM.
+            </p>
+          </details>
+
+          <details>
+            <summary>¿Bot-On utiliza inteligencia artificial?</summary>
+            <p>
+              Sí. Utiliza Gemini para mantener conversaciones con los
+              clientes mediante inteligencia artificial.
+            </p>
+          </details>
+
+          <details>
+            <summary>¿Los pedidos se registran en un CRM?</summary>
+            <p>
+              Sí. Los datos correspondientes al pedido se centralizan
+              en el CRM para facilitar su consulta y seguimiento.
+            </p>
+          </details>
+
+          <details>
+            <summary>¿Bot-On puede recibir comprobantes de pago?</summary>
+            <p>
+              Sí. Recibe las imágenes enviadas por los clientes y las
+              adjunta junto con los datos del pedido en el CRM.
+            </p>
+          </details>
+
+          <details>
+            <summary>¿Bot-On lee o verifica automáticamente los comprobantes?</summary>
+            <p>
+              No. La función descrita consiste en recibir y adjuntar
+              la imagen al pedido. No implica lectura automática del
+              comprobante ni validación del pago.
+            </p>
+          </details>
+
+          <details>
+            <summary>¿Cómo puedo conocer Bot-On para mi empresa?</summary>
+            <p>
+              Puedes escribir por WhatsApp para solicitar información
+              sobre la solución y conversar sobre las necesidades
+              de tu operación comercial.
+            </p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="container">
+        <h2>Conoce una forma más organizada de gestionar tus ventas</h2>
+        <p>
+          Cuéntanos cómo atiendes a tus clientes y gestionas los pedidos.
+          Conoce si Bot-On se ajusta a las necesidades de tu empresa.
+        </p>
+
+        <a
+          class="button"
+          href="https://wa.me/573052926015?text=Hola,%20quiero%20conocer%20Bot-On">
+          Hablar con Bot-On por WhatsApp
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>Bot-On | Automatización comercial con inteligencia artificial</span>
+      <a href="https://bot-on.online/">Visitar bot-on.online</a>
+    </div>
+  </footer>
 </body>
 </html>
