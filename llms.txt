@@ -1,0 +1,31 @@
+
+# Bot-On
+
+> Bot-On es una solución de automatización comercial por WhatsApp que utiliza inteligencia artificial para atender clientes, gestionar pedidos y organizar la información comercial en el CRM de las empresas.
+
+## Sitio oficial
+
+- https://bot-on.online/
+
+## Servicios y funcionamiento
+
+- [Automatización de WhatsApp para empresas en Colombia](https://bot-on.online/automatizacion-whatsapp-colombia.html): información sobre la automatización de conversaciones comerciales, atención de clientes y gestión de pedidos.
+- [Cómo funciona el bot de pagos](https://bot-on.online/como-funciona-bot-de-pagos.html): explica el proceso de cotización, entrega de datos bancarios, recepción de comprobantes y gestión posterior por un agente humano.
+
+## Funciones de Bot-On
+
+- Atiende conversaciones de clientes a través de WhatsApp utilizando inteligencia artificial con Gemini.
+- Consulta la base de datos de la empresa para cotizar productos o servicios.
+- Proporciona los datos bancarios correspondientes para que el cliente realice el pago.
+- Registra la información de los pedidos en el CRM.
+- Recibe imágenes de comprobantes de pago y las adjunta al pedido correspondiente en el CRM.
+- Permite que un agente humano revise los comprobantes y confirme el pago.
+
+## Límites de automatización
+
+Bot-On no lee automáticamente el contenido de los comprobantes ni verifica por sí solo si un pago fue realizado. La revisión y confirmación del pago corresponden a un agente humano.
+
+## Contacto
+
+- WhatsApp: https://wa.me/573052926015
+- Sitio web: https://bot-on.online/
